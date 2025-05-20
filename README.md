@@ -18,7 +18,7 @@ Highlight + Tag + Annotate any webpage content.
 tagalyst-extension/
 ├── build/                     ← Load this in `chrome://extensions`
 │   ├── manifest.json
-│   ├── background.js
+│   ├── background.js          ← Bundled background script (from Rollup)
 │   ├── content.js             ← Bundled content script (from Rollup)
 │   ├── injected.js
 │   ├── popup/
@@ -50,6 +50,10 @@ npm install --save-dev rollup @rollup/plugin-node-resolve
 
 # compile src/content.js and its module imports into dist/content.js.
 npx rollup -c
+# Alternative: Use package.json and run build
+npm run build
+# Alternative: Use package.json and dev with watch option -w
+npm run dev
 ```
 
 ## Run
@@ -101,7 +105,8 @@ see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
   - Listen for or dispatch custom events
 - **Notes**: Must use `postMessage` or DOM events to communicate with the extension; bundle all logic into a single file if using modules
 
-## 4. `/popup/` (e.g. `popup.html`, `popup.js`)
+## 4. `/popup/` 
+E.g. `popup.html`, `popup.js`:
 - **Job**: Extension UI shown when the extension icon is clicked
 - **Context**: HTML document in extension context
   - ✅ DOM
@@ -113,7 +118,8 @@ see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
   - Trigger actions (e.g., clear data, open tab)
 - **Notes**: Fully isolated like a mini web app; behaves like a standalone HTML page
 
-## 5. `/modules/`
+## 5. `../src/modules/`
+If bundled, else `./modules`:
 - **Job**: Internal shared logic
 - **Context**: Imported by background, popup, or bundled content scripts
   - ✅ ES6 modules (used at build time or in popup/background)
@@ -122,13 +128,13 @@ see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
   - Utilities (logging, time formatting, storage abstraction, etc.)
 - **Notes**: Should be bundled when used in `content.js`
 
-## 6. `/libs/`
+## 6. `../node_modules/`
+If bundled, else `./modules`:
 - **Job**: Vendored external libraries written in ES6 module format
+  - Libraries are typically integrated using `npm install`
+  - `package.json` to get an overview
 - **Context**: Imported where needed (typically via bundler)
   - ✅ ES6 modules (must be resolvable by Rollup/Webpack/etc.)
 - **Typical tasks**:
   - e.g. `uuid`, `marked`, `lodash-es`, custom client SDKs
 - **Notes**: Avoid direct imports from `content.js` unless bundled; use only ESM-compatible libraries
-
-
-

@@ -3,4 +3,3 @@ node_modules/
 build/content.js
 build/background.js
 package-lock.json
-package.json    
