@@ -1,4 +1,3 @@
-
-export function logInfo(message) {
-  console.log("[Tagalyst]", message);
+export function logInfo(...args) {
+  console.log('[Tagalyst]', ...args);
 }

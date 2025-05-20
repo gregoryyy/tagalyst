@@ -1,5 +1,4 @@
-
-const HIGHLIGHT_CLASS = 'tagalyst-highlight';
+import { HIGHLIGHT_CLASS } from './config.js';
 
 export function getSelectedRange() {
   const selection = window.getSelection();
@@ -7,13 +6,50 @@ export function getSelectedRange() {
   return selection.getRangeAt(0).cloneRange();
 }
 
-export function applyHighlight(range, id) {
-  const span = document.createElement('span');
-  span.className = HIGHLIGHT_CLASS;
-  span.dataset.tagalystId = id;
-  span.style.backgroundColor = 'yellow';
+// Get all text nodes intersecting the selection range
+function getTextNodesInRange(range) {
+  const textNodes = [];
+  const treeWalker = document.createTreeWalker(
+    range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode: (node) => range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+    }
+  );
+  while (treeWalker.nextNode()) {
+    textNodes.push(treeWalker.currentNode);
+  }
+  return textNodes;
+}
 
-  range.surroundContents(span);
+// Robust multi-node highlighter
+export function applyHighlight(range, id) {
+  const textNodes = getTextNodesInRange(range);
+
+  for (const node of textNodes) {
+    const highlightRange = document.createRange();
+
+    const startOffset = node === range.startContainer ? range.startOffset : 0;
+    const endOffset = node === range.endContainer ? range.endOffset : node.length;
+
+    if (startOffset >= endOffset) continue;
+
+    highlightRange.setStart(node, startOffset);
+    highlightRange.setEnd(node, endOffset);
+
+    const span = document.createElement('span');
+    span.className = HIGHLIGHT_CLASS;
+    span.dataset.tagalystId = id;
+    span.style.backgroundColor = 'yellow';
+    span.style.borderRadius = '2px';
+    span.style.padding = '0.1em';
+
+    try {
+      highlightRange.surroundContents(span);
+    } catch (e) {
+      console.warn('Failed to highlight range in node:', node, e);
+    }
+  }
 }
 
 export function serializeRange(range) {
@@ -37,16 +73,20 @@ export function restoreHighlight(snippet) {
   const range = document.createRange();
   range.setStart(startNode, snippet.startOffset);
   range.setEnd(endNode, snippet.endOffset);
+
   applyHighlight(range, snippet.id);
 }
 
+// Serialize a DOM node path like BODY:0/DIV:2/P:1
 function getDomPath(node) {
   const path = [];
-  while (node && node.nodeType === Node.ELEMENT_NODE) {
+  while (node && node !== document.body && node.nodeType === Node.ELEMENT_NODE) {
     let index = 0;
     let sibling = node.previousSibling;
     while (sibling) {
-      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName === node.nodeName) index++;
+      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName === node.nodeName) {
+        index++;
+      }
       sibling = sibling.previousSibling;
     }
     path.unshift(`${node.nodeName}:${index}`);
@@ -55,6 +95,7 @@ function getDomPath(node) {
   return path.join('/');
 }
 
+// Reconstruct the node from a serialized path
 function queryDomPath(path) {
   const segments = path.split('/');
   let node = document.body;

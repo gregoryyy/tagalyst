@@ -29,10 +29,14 @@ tagalyst-extension/
 │
 ├── src/                       ← Source modules for Rollup bundling
 │   ├── content.js
-│   ├── logger.js
-│   ├── highlighter.js
-│   └── storage.js
+│   ├── background.js
+│   └── modules/
+│       ├── config.js
+│       ├── logger.js
+│       ├── highlighter.js
+│       └── storage.js
 │
+├── node_modules               ← Source modules via npm install
 ├── rollup.config.js
 ├── README.md
 └── .gitignore
