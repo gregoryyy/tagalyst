@@ -3,13 +3,59 @@
 
 Highlight + Tag + Annotate any webpage content.
 
-## Features
+# Features
 
 - Highlight text on any site
 - Automatically saves it with timestamp
 - View saved snippets in popup
 
-# Chrome Extension Structure (Manifest V3 – ES Modules)
+
+# Development
+
+## Project structure
+
+tagalyst-extension/
+├── build/                     ← Load this in `chrome://extensions`
+│   ├── manifest.json
+│   ├── background.js
+│   ├── content.js             ← Bundled content script (from Rollup)
+│   ├── injected.js
+│   ├── popup/
+│   │   ├── popup.html
+│   │   └── popup.js
+│   └── assets/
+│       └── icon48.png
+│
+├── src/                       ← Source modules for Rollup bundling
+│   ├── content.js
+│   ├── logger.js
+│   ├── highlighter.js
+│   └── storage.js
+│
+├── rollup.config.js
+├── README.md
+└── .gitignore
+
+## Develop
+
+
+```bash
+# prerequisite (Mac example):
+brew install node
+
+# install dependencies
+npm install --save-dev rollup @rollup/plugin-node-resolve
+
+# compile src/content.js and its module imports into dist/content.js.
+npx rollup -c
+```
+
+## Run
+
+Reload extension from `build/` in `chrome://extensions`
+
+
+# Appendix: Chrome Extension Structure (Manifest V3 – ES Modules)
 
 see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
 
