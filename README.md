@@ -14,6 +14,7 @@ Highlight + Tag + Annotate any webpage content.
 
 ## Project structure
 
+```
 tagalyst-extension/
 ├── build/                     ← Load this in `chrome://extensions`
 │   ├── manifest.json
@@ -35,6 +36,7 @@ tagalyst-extension/
 ├── rollup.config.js
 ├── README.md
 └── .gitignore
+```
 
 ## Develop
 
