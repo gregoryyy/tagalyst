@@ -24,33 +24,36 @@ function getTextNodesInRange(range) {
 
 // Robust multi-node highlighter
 export function applyHighlight(range, id) {
-  const textNodes = getTextNodesInRange(range);
-
-  for (const node of textNodes) {
-    const highlightRange = document.createRange();
-
-    const startOffset = node === range.startContainer ? range.startOffset : 0;
-    const endOffset = node === range.endContainer ? range.endOffset : node.length;
-
-    if (startOffset >= endOffset) continue;
-
-    highlightRange.setStart(node, startOffset);
-    highlightRange.setEnd(node, endOffset);
-
+  const spanWrapper = (textNode) => {
     const span = document.createElement('span');
     span.className = HIGHLIGHT_CLASS;
     span.dataset.tagalystId = id;
     span.style.backgroundColor = 'yellow';
     span.style.borderRadius = '2px';
     span.style.padding = '0.1em';
+    span.textContent = textNode.textContent;
+    return span;
+  };
 
-    try {
-      highlightRange.surroundContents(span);
-    } catch (e) {
-      console.warn('Failed to highlight range in node:', node, e);
+  const fragment = range.extractContents();
+  const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT);
+
+  const toWrap = [];
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode;
+    if (textNode.textContent.trim()) {
+      toWrap.push(textNode);
     }
   }
+
+  toWrap.forEach((textNode) => {
+    const span = spanWrapper(textNode);
+    textNode.parentNode.replaceChild(span, textNode);
+  });
+
+  range.insertNode(fragment);
 }
+
 
 export function serializeRange(range) {
   return {

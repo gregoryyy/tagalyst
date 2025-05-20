@@ -1,11 +1,16 @@
 # Development tasks
 
+## Version
+
+v 0.2.0
+20 May 2025
+
 ## Bugs
 
 - Highlight
   - Create
     - [ ] Multiline selection works but breaks DOM
-    - [ ] Single line selection does not show highlight
+    - [x] Single line selection does not show highlight
   - Replay
     - [ ] Reload does not reapply highlights
 - Storage
@@ -26,7 +31,8 @@
     - [ ] Overlapping snippets
 - Reload page (URL with snippets)
   - [x] Reproduce selection from storage (DOM path and offset)
-  - [ ] 
+  - [ ] Delete snippets
+  - [ ] Change color of snippets
 - Snippet page (extension popup)
   - [ ] List known snippets (bug)
   - [ ] Delete snippets
