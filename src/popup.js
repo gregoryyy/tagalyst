@@ -1,4 +1,4 @@
-import { logInfo } from '../modules/logger.js';
+import { logInfo } from './modules/logger.js';
 
 async function renderSnippets() {
   const container = document.getElementById('snippets');

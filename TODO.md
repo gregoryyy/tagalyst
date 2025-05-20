@@ -2,7 +2,7 @@
 
 ## Version
 
-v 0.2.0
+v 0.2.1
 20 May 2025
 
 ## Bugs
@@ -16,6 +16,8 @@ v 0.2.0
 - Storage
   - [x] Data not saved to localstorage
   - [ ] Data not retrieved
+- Architecture
+  - Full ES port of TextHighlighter lib
 
 
 ## Features

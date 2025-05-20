@@ -13,5 +13,12 @@ export default [
     input: 'src/background.js',
     output: { file: 'build/background.js', format: 'es' },
     plugins: [resolve()]
+  },
+  {
+    // bundle popup as dependency on logger etc.
+    // must be ES module
+    input: 'src/popup.js',
+    output: { file: 'build/popup/popup.js', format: 'es' },
+    plugins: [resolve()]
   }
 ];
