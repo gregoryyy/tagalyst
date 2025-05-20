@@ -10,11 +10,12 @@ import {
   loadSnippets
 } from './modules/storage.js';
 
-import { logInfo } from './modules/logger.js';
+import { logInfo, logWarn, logError } from './modules/logger.js';
 import { HIGHLIGHT_CLASS } from './modules/config.js';
 
 async function handleMouseUp() {
   const range = getSelectedRange();
+  logInfo("Mouse up event detected", range);
   if (!range || range.collapsed) return;
 
   const snippet = serializeRange(range);
@@ -25,12 +26,13 @@ async function handleMouseUp() {
 
 async function restoreAllSnippets() {
   const snippets = await loadSnippets();
+  logInfo('Restoring snippets:', snippets);
   for (const snippet of snippets) {
     if (snippet.url === window.location.href) {
       try {
         restoreHighlight(snippet);
       } catch (error) {
-        logInfo(`Error restoring snippet ${snippet.id}:`, error);
+        logError(`Error restoring snippet ${snippet.id}:`, error);
       }
     }
   }
@@ -39,6 +41,7 @@ async function restoreAllSnippets() {
 document.addEventListener('mouseup', handleMouseUp);
 
 window.addEventListener('DOMContentLoaded', () => {
+  logInfo('Content script loaded.');
   setTimeout(() => {
     restoreAllSnippets();
   }, 100);
@@ -54,3 +57,9 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// debug
+chrome.runtime.sendMessage("content loaded", (response) => {
+  // Handle any response from the background script if needed
+  logInfo("Content script loaded and ready to go: ", response);
+});

@@ -3,7 +3,7 @@
   "manifest_version": 3,
   "name": "Tagalyst",
   "description": "Highlight and Tag Web Content",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "permissions": ["storage", "scripting", "activeTab"],
   "host_permissions": ["<all_urls>", "https://jsonplaceholder.typicode.com/*"],
   "action": {
@@ -11,8 +11,7 @@
     "default_icon": "assets/icon48.png"
   },
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {

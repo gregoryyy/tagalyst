@@ -3,6 +3,7 @@ import { logInfo } from './modules/logger.js';
 async function renderSnippets() {
   const container = document.getElementById('snippets');
   const { snippets = [] } = await chrome.storage.local.get('snippets');
+  logInfo('Rendering snippets:', snippets);
 
   if (snippets.length === 0) {
     container.textContent = 'No snippets yet.';
@@ -21,4 +22,10 @@ async function renderSnippets() {
 document.addEventListener('DOMContentLoaded', () => {
   logInfo('Popup loaded.');
   renderSnippets();
+});
+
+// debug
+chrome.runtime.sendMessage("popup loaded", (response) => {
+  // Handle any response from the background script if needed
+  logInfo("Popup script loaded and ready to go: ", response);
 });
