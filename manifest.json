@@ -3,7 +3,7 @@
   "manifest_version": 3,
   "name": "Tagalyst",
   "description": "Highlight and Tag Web Content",
-  "version": "0.1",
+  "version": "0.2.0",
   "permissions": ["storage", "scripting", "activeTab"],
   "host_permissions": ["<all_urls>", "https://jsonplaceholder.typicode.com/*"],
   "action": {

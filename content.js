@@ -1,15 +1,16 @@
-
+import { getSelectedText } from './modules/highlighter.js';
 import { logInfo } from './modules/logger.js';
+import { saveSnippet } from './modules/storage.js';
 
-async function fetchData() {
-  try {
-    const response = await fetch('https://jsonplaceholder.typicode.com/posts/1');
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    logInfo('Fetched data:', data);
-  } catch (error) {
-    logInfo('Fetch error:', error.message);
+document.addEventListener('mouseup', async () => {
+  const selectedText = getSelectedText();
+  if (selectedText) {
+    const snippet = {
+      text: selectedText,
+      timestamp: new Date().toISOString(),
+      url: window.location.href
+    };
+    await saveSnippet(snippet);
+    logInfo('Snippet saved:', snippet);
   }
-}
-
-document.addEventListener('DOMContentLoaded', fetchData);
+});
