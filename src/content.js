@@ -1,6 +1,6 @@
-import { getSelectedText } from './highlighter.js';
-import { logInfo } from './logger.js';
-import { saveSnippet } from './storage.js';
+import { getSelectedText } from './modules/highlighter.js';
+import { logInfo } from './modules/logger.js';
+import { saveSnippet } from './modules/storage.js';
 
 document.addEventListener('mouseup', async () => {
   const selectedText = getSelectedText();

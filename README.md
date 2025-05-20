@@ -57,7 +57,10 @@ npx rollup -c
 Reload extension from `build/` in `chrome://extensions`
 
 
-# Appendix: Chrome Extension Structure (Manifest V3 – ES Modules)
+# Appendix: Chrome Extension Structure
+
+- Manifest V3 – ES Modules
+- relative to /build directory
 
 see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
 
@@ -67,7 +70,7 @@ see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
   - ✅ Chrome APIs
   - ❌ Page DOM
   - ❌ Page JS
-  - ✅ ES6 modules (native)
+  - ✅ ES6 modules (native, ES)
 - **Typical tasks**:
   - Manage messaging
   - Handle extension installation, updates
@@ -84,7 +87,7 @@ see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
 - **Typical tasks**:
   - Read or modify DOM (e.g., highlight selections)
   - Inject scripts into the page
-- **Notes**: Content scripts must be bundled (e.g. with Rollup, Webpack) to use ES6 module logic; native `import` statements fail due to cross-origin isolation
+- **Notes**: Content scripts must be bundled (e.g. IIFE type with Rollup, Webpack) to use ES6 module logic; native `import` statements fail due to cross-origin isolation
 
 ## 3. `injected.js`
 - **Job**: Script executed in the page’s own JavaScript context
