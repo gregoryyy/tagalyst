@@ -23,22 +23,24 @@ tagalyst-extension/
 │   ├── injected.js
 │   ├── popup/
 │   │   ├── popup.html
-│   │   └── popup.js
+│   │   └── popup.js           ← Bundled popup script (from Rollup)
 │   └── assets/
 │       └── icon48.png
 │
 ├── src/                       ← Source modules for Rollup bundling
-│   ├── content.js
 │   ├── background.js
+│   ├── content.js
+│   ├── popup.js
 │   └── modules/
 │       ├── config.js
-│       ├── logger.js
 │       ├── highlighter.js
+│       ├── logger.js
 │       └── storage.js
 │
 ├── node_modules               ← Source modules via npm install
 ├── rollup.config.js
 ├── README.md
+├── TODO.md
 └── .gitignore
 ```
 
@@ -62,7 +64,14 @@ npm run dev
 
 ## Run
 
-Reload extension from `build/` in `chrome://extensions`
+Load unpacked from `build/` in `chrome://extensions` (first time)
+Update in `chrome://extensions`
+
+## Debug
+
+- Developer Tools: access `content.js` console
+- `chrome://extensions` / Tagalyst / "Inspect views": access `background.js` console
+- Extension menu / Inspect (right click on menu page): access to `popup.js` console
 
 
 # Appendix: Chrome Extension Structure

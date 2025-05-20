@@ -40,12 +40,20 @@ async function restoreAllSnippets() {
 
 document.addEventListener('mouseup', handleMouseUp);
 
-window.addEventListener('DOMContentLoaded', () => {
-  logInfo('Content script loaded.');
-  setTimeout(() => {
-    restoreAllSnippets();
-  }, 100);
+// Check if the document is ready or still loading
+function onReady(callback) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', callback);
+  } else {
+    callback();
+  }
+}
+
+onReady(() => {
+  logInfo('***** Content script ready.');
+  restoreAllSnippets();
 });
+
 
 // Inject highlight style dynamically
 const style = document.createElement('style');

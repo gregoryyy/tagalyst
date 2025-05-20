@@ -12,10 +12,10 @@ v 0.2.1
     - [x] Multiline selection works but breaks DOM
     - [x] Single line selection does not show highlight
   - Replay
-    - [ ] Reload does not reapply highlights
+    - [x] Reload does not reapply highlights
 - Storage
-  - [x] Data not saved to localstorage
-  - [ ] Data not retrieved
+  - [ ] Data not saved to localstorage
+  - [x] Data not retrieved
 - Architecture
   - Full ES port of TextHighlighter lib
 

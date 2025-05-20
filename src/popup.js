@@ -19,8 +19,10 @@ async function renderSnippets() {
   `).join('');
 }
 
+logInfo('Popup script loading.');
+
 document.addEventListener('DOMContentLoaded', () => {
-  logInfo('Popup loaded.');
+  logInfo('Popup loaded, render snippets.');
   renderSnippets();
 });
 
