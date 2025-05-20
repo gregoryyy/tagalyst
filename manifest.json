@@ -1,0 +1,30 @@
+
+{
+  "manifest_version": 3,
+  "name": "Tagalyst",
+  "description": "Highlight and Tag Web Content",
+  "version": "0.1",
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": ["<all_urls>", "https://jsonplaceholder.typicode.com/*"],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": "assets/icon48.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "type": "module"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["injected.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
