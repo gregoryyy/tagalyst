@@ -13,16 +13,43 @@ import {
 import { logInfo, logWarn, logError } from './modules/logger.js';
 import { HIGHLIGHT_CLASS } from './modules/config.js';
 
-async function handleMouseUp() {
-  const range = getSelectedRange();
-  logInfo("Mouse up event detected", range);
-  if (!range || range.collapsed) return;
+// async function handleMouseUp() {
+//   const range = getSelectedRange();
+//   logInfo("Mouse up event detected", range);
+//   if (!range || range.collapsed) return;
 
-  const snippet = serializeRange(range);
-  applyHighlight(range, snippet.id);
+//   const snippet = serializeRange(range);
+//   applyHighlight(range, snippet.id);
+//   await saveSnippet(snippet);
+//   logInfo('Saved and highlighted:', snippet.text);
+// }
+
+let lastValidRange = null;
+
+// Track valid selection while active = before pointer up
+document.addEventListener('selectionchange', () => {
+  logInfo("Selection change event detected");
+  const selection = window.getSelection();
+  if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+    lastValidRange = selection.getRangeAt(0).cloneRange();
+    logInfo("Selection updated:", lastValidRange);
+  }
+});
+
+// Use pointerup to trigger highlight logic
+document.addEventListener('pointerup', async () => {
+  logInfo("Pointer up event detected");
+  if (!lastValidRange || lastValidRange.collapsed) {
+    logInfo("Pointer up: No valid range to highlight.");
+    return;
+  }
+
+  const snippet = serializeRange(lastValidRange);
+  applyHighlight(lastValidRange, snippet.id);
   await saveSnippet(snippet);
   logInfo('Saved and highlighted:', snippet.text);
-}
+  lastValidRange = null;
+});
 
 async function restoreAllSnippets() {
   const snippets = await loadSnippets();
@@ -37,8 +64,6 @@ async function restoreAllSnippets() {
     }
   }
 }
-
-document.addEventListener('mouseup', handleMouseUp);
 
 // Check if the document is ready or still loading
 function onReady(callback) {

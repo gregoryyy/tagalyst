@@ -24,24 +24,28 @@ export function getSelectedRange() {
 
 // Apply a highlight and return its serialized form
 export function applyHighlight(range, id) {
-  const highlights = highlighter.highlightRange(range);
-
+  const wrapper = document.createElement('span');
+  wrapper.className = 'tagalyst-highlight';
+  wrapper.style.backgroundColor = 'yellow';
+  wrapper.style.padding = '0.1em';
+  wrapper.style.borderRadius = '2px';
+  
+  const highlights = highlighter.highlightRange(range, wrapper);
+  
   logInfo("Highlight applied", highlights);
-
-  // Manually assign an ID to each span (not built-in to TextHighlighter)
+  
   highlights.forEach(span => {
+    // Manually assign an ID to each span (not built-in to TextHighlighter)
     span.dataset.tagalystId = id;
-    span.style.backgroundColor = 'yellow';
-    span.style.borderRadius = '2px';
-    span.style.padding = '0.1em';
   });
 
   return highlights;
 }
 
+
 // Serialize a highlight range into a storable snippet
 export function serializeRange(range) {
-  logInfo("Range serialized", range);
+  logInfo("Range serializing", range);
   return {
     text: range.toString(),
     serialized: highlighter.serializeHighlights(),

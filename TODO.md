@@ -13,8 +13,9 @@ v 0.2.1
     - [x] Single line selection does not show highlight
   - Replay
     - [x] Reload does not reapply highlights
+    - [ ] ...some highlights
 - Storage
-  - [ ] Data not saved to localstorage
+  - [x] Data not saved to localstorage
   - [x] Data not retrieved
 - Architecture
   - Full ES port of TextHighlighter lib
@@ -29,7 +30,7 @@ v 0.2.1
   - [ ] Add tags
   - [ ] Add note
   - [ ] Edge cases
-    - [ ] Multiline snippets
+    - [x] Multiline snippets
     - [ ] Overlapping snippets
 - Reload page (URL with snippets)
   - [x] Reproduce selection from storage (DOM path and offset)
