@@ -9,7 +9,7 @@ v 0.2.0
 
 - Highlight
   - Create
-    - [ ] Multiline selection works but breaks DOM
+    - [x] Multiline selection works but breaks DOM
     - [x] Single line selection does not show highlight
   - Replay
     - [ ] Reload does not reapply highlights

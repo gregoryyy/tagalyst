@@ -1,122 +1,63 @@
+import TextHighlighter from '../lib/TextHighlighter.js';
 import { HIGHLIGHT_CLASS } from './config.js';
 
+// Create and export a highlighter instance
+export const highlighter = new TextHighlighter(document.body, {
+  highlightedClass: HIGHLIGHT_CLASS,
+  onAfterHighlight: (range, highlights) => {
+    console.log("Highlight applied", highlights);
+  },
+  onBeforeHighlight: (range) => {
+    // Prevent overlapping highlights
+    return !range.collapsed && range.toString().trim() !== '';
+  }
+});
+
+// Get the current selection range
 export function getSelectedRange() {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) return null;
   return selection.getRangeAt(0).cloneRange();
 }
 
-// Get all text nodes intersecting the selection range
-function getTextNodesInRange(range) {
-  const textNodes = [];
-  const treeWalker = document.createTreeWalker(
-    range.commonAncestorContainer,
-    NodeFilter.SHOW_TEXT,
-    {
-      acceptNode: (node) => range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
-    }
-  );
-  while (treeWalker.nextNode()) {
-    textNodes.push(treeWalker.currentNode);
-  }
-  return textNodes;
-}
-
-// Robust multi-node highlighter
+// Apply a highlight and return its serialized form
 export function applyHighlight(range, id) {
-  const spanWrapper = (textNode) => {
-    const span = document.createElement('span');
-    span.className = HIGHLIGHT_CLASS;
+  const highlights = highlighter.highlightRange(range);
+
+  // Manually assign an ID to each span (not built-in to TextHighlighter)
+  highlights.forEach(span => {
     span.dataset.tagalystId = id;
     span.style.backgroundColor = 'yellow';
     span.style.borderRadius = '2px';
     span.style.padding = '0.1em';
-    span.textContent = textNode.textContent;
-    return span;
-  };
-
-  const fragment = range.extractContents();
-  const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT);
-
-  const toWrap = [];
-  while (walker.nextNode()) {
-    const textNode = walker.currentNode;
-    if (textNode.textContent.trim()) {
-      toWrap.push(textNode);
-    }
-  }
-
-  toWrap.forEach((textNode) => {
-    const span = spanWrapper(textNode);
-    textNode.parentNode.replaceChild(span, textNode);
   });
 
-  range.insertNode(fragment);
+  return highlights;
 }
 
-
+// Serialize a highlight range into a storable snippet
 export function serializeRange(range) {
   return {
     text: range.toString(),
-    startContainerPath: getDomPath(range.startContainer),
-    startOffset: range.startOffset,
-    endContainerPath: getDomPath(range.endContainer),
-    endOffset: range.endOffset,
+    serialized: highlighter.serializeHighlights(),
     url: window.location.href,
     timestamp: new Date().toISOString(),
     id: crypto.randomUUID()
   };
 }
 
+// Restore a highlight from a serialized snippet
 export function restoreHighlight(snippet) {
-  const startNode = queryDomPath(snippet.startContainerPath);
-  const endNode = queryDomPath(snippet.endContainerPath);
-  if (!startNode || !endNode) return;
-
-  const range = document.createRange();
-  range.setStart(startNode, snippet.startOffset);
-  range.setEnd(endNode, snippet.endOffset);
-
-  applyHighlight(range, snippet.id);
-}
-
-// Serialize a DOM node path like BODY:0/DIV:2/P:1
-function getDomPath(node) {
-  const path = [];
-  while (node && node !== document.body && node.nodeType === Node.ELEMENT_NODE) {
-    let index = 0;
-    let sibling = node.previousSibling;
-    while (sibling) {
-      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName === node.nodeName) {
-        index++;
+  try {
+    highlighter.deserializeHighlights(snippet.serialized);
+    // Optional: patch dataset if needed
+    const spans = document.querySelectorAll(`.${HIGHLIGHT_CLASS}`);
+    spans.forEach(span => {
+      if (!span.dataset.tagalystId) {
+        span.dataset.tagalystId = snippet.id;
       }
-      sibling = sibling.previousSibling;
-    }
-    path.unshift(`${node.nodeName}:${index}`);
-    node = node.parentNode;
+    });
+  } catch (e) {
+    console.warn("Failed to restore highlight", e);
   }
-  return path.join('/');
-}
-
-// Reconstruct the node from a serialized path
-function queryDomPath(path) {
-  const segments = path.split('/');
-  let node = document.body;
-  for (const segment of segments) {
-    const [tag, index] = segment.split(':');
-    let count = 0;
-    let found = null;
-    for (const child of node.childNodes) {
-      if (child.nodeType === Node.ELEMENT_NODE && child.nodeName === tag) {
-        if (count === parseInt(index)) {
-          found = child;
-          break;
-        }
-        count++;
-      }
-    }
-    if (!found) return null;
-    node = found;
-  }
-  return node;
 }
