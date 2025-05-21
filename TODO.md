@@ -1,10 +1,5 @@
 # Development tasks
 
-## Version
-
-v 0.2.1
-20 May 2025
-
 ## Bugs
 
 - Highlight
@@ -13,12 +8,12 @@ v 0.2.1
     - [x] Single line selection does not show highlight
   - Replay
     - [x] Reload does not reapply highlights
-    - [ ] ...some highlights
+    - [ ] ...some highlights (storage format issue)
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved
 - Architecture
-  - Full ES port of TextHighlighter lib
+  - [ ] Full ES port of TextHighlighter lib
 
 
 ## Features
@@ -44,3 +39,18 @@ v 0.2.1
 - Import and Export page (on snippet page)
   - [ ] Serialize to JSON
   - [ ] Import from JSON
+
+## History
+
+- 21 May 2025  v0.2.2:
+  - Fixes
+  - Add notes
+  - Popup
+- 20 May 2025  v0.2.1:
+  - Working round-trip, with bugs 2h
+  - Dev environment, research JS module types, Chrome runtime contexts and sandboxing 4h
+  - Insight: LLM gives you hints but you need to keep using System 1
+- 19 May 2025  v0.1.0:
+  - Requirements, other solutions
+  - Quick naive attempt without rollup
+  - Insight: There's a lot of plugins out there but none work with ChatGPT properly

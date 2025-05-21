@@ -1,10 +1,25 @@
 /*
  * TextHighlighter ES Module
+ *
+ * This module allows you to:
+ * - Highlight text selections in a DOM element
+ * - Serialize and restore highlights
+ * - Customize styling and behavior with options
+ * - Find and highlight matching text
+ *
  * Ported from IIFE version with fixes for:
  * - Proper event unbinding using stored bound handler
  * - window.find fallback support
  * - Removed IE TextRange code
  * - More robust deserialization with path validation
+ * - Comments and code cleanup
+ * 
+ * @license MIT, port to ES module (c) 2025 by Gregor Heinrich
+ * Github:  https://github.com/gregoryyy/tagalyst
+ * 
+ * @license MIT, original IIFE implementation (c) 2011-2014 by Mir3z
+ * Web:     https://mir3z.github.io/texthighlighter/
+ * Github:  https://github.com/mir3z/texthighlighter
  */
 
 const DATA_ATTR = 'data-highlighted';
@@ -15,10 +30,16 @@ const IGNORE_TAGS = [
   'PARAM', 'METER', 'PROGRESS'
 ];
 
+/**
+ * Compares background color of two nodes.
+ */
 function haveSameColor(a, b) {
   return dom(a).color() === dom(b).color();
 }
 
+/**
+ * Applies default values to an object.
+ */
 function defaults(obj, source) {
   obj = obj || {};
   for (const prop in source) {
@@ -29,10 +50,16 @@ function defaults(obj, source) {
   return obj;
 }
 
+/**
+ * Removes duplicate items from an array.
+ */
 function unique(arr) {
   return arr.filter((value, idx, self) => self.indexOf(value) === idx);
 }
 
+/**
+ * Refines range boundaries for more precise highlighting.
+ */
 function refineRangeBoundaries(range) {
   let startContainer = range.startContainer,
       endContainer = range.endContainer,
@@ -70,10 +97,16 @@ function refineRangeBoundaries(range) {
   return { startContainer, endContainer, goDeeper };
 }
 
+/**
+ * Sorts nodes by their DOM depth.
+ */
 function sortByDepth(arr, descending) {
   arr.sort((a, b) => dom(descending ? b : a).parents().length - dom(descending ? a : b).parents().length);
 }
 
+/**
+ * Groups highlight elements by their timestamp.
+ */
 function groupHighlights(highlights) {
   const order = [], chunks = {}, grouped = [];
   highlights.forEach(hl => {
@@ -95,17 +128,34 @@ function groupHighlights(highlights) {
   return grouped;
 }
 
+// === DOM Helper ===
+
+/**
+ * Utility functions to make DOM manipulation easier.
+ * @param {Node|HTMLElement} [el] - base DOM element to manipulate
+ * @returns {object}
+ */
 function dom(el) {
   return {
+    // add class (string) to element
     addClass: className => el.classList ? el.classList.add(className) : (el.className += ' ' + className),
+    // remove class (string) from element
     removeClass: className => el.classList ? el.classList.remove(className) : (el.className = el.className.replace(new RegExp('(^|\\b)' + className + '(\\b|$)', 'gi'), ' ')),
+    // prepend child nodes (Node[]) to base element
     prepend: nodesToPrepend => nodesToPrepend.slice().reverse().forEach(n => el.insertBefore(n, el.firstChild)),
+    // append child nodes (Node[]) to base element
     append: nodesToAppend => nodesToAppend.forEach(n => el.appendChild(n)),
+    // insert a Node after the reference element -> inserted element (Node)
     insertAfter: refEl => refEl.parentNode.insertBefore(el, refEl.nextSibling),
+    // insert a Node before the reference element -> inserted element (Node)
     insertBefore: refEl => refEl.parentNode.insertBefore(el, refEl),
+    // remove the reference element from DOM
     remove: () => el?.parentNode?.removeChild(el),
+    // check if the base element (Node|HTMLElement) has child element -> boolean
     contains: child => el !== child && el.contains(child),
+    // wrap the base element (HTMLElement) with a new wrapper element -> wrapper (HTMLElement)
     wrap: wrapper => { el.parentNode?.insertBefore(wrapper, el); wrapper.appendChild(el); return wrapper; },
+    // unwrap the base element from its parent -> child nodes (Node[])
     unwrap: () => {
       const nodes = Array.from(el.childNodes);
       nodes.forEach(node => {
@@ -115,12 +165,15 @@ function dom(el) {
       });
       return nodes;
     },
+    // array of base element parents -> parents (HTMLElement[])
     parents: () => {
       const path = [];
       let parent = el;
       while ((parent = parent.parentNode)) path.push(parent);
       return path;
     },
+    // Normalizes text nodes within base element, 
+    // ie. merges sibling text nodes and assures that every element node has only one text node.
     normalizeTextNodes: () => {
       if (!el) return;
       if (el.nodeType === NODE_TYPE.TEXT_NODE) {
@@ -133,21 +186,38 @@ function dom(el) {
       }
       dom(el.nextSibling).normalizeTextNodes();
     },
+    // element background color -> CSSStyleDeclaration.backgroundColor
     color: () => el.style.backgroundColor,
+    // dom element from html string -> NodeList
     fromHTML: html => {
       const div = document.createElement('div');
       div.innerHTML = html;
       return div.childNodes;
     },
+    // first range of window of base element -> Range
     getRange: () => dom(el).getSelection()?.rangeCount > 0 ? dom(el).getSelection().getRangeAt(0) : null,
+    // remove all ranges of window of base element
     removeAllRanges: () => dom(el).getSelection().removeAllRanges(),
+    // selection object of window of base element -> Selection
     getSelection: () => dom(el).getWindow().getSelection(),
+    // window object of base element -> Window
     getWindow: () => dom(el).getDocument().defaultView,
+    // get the document of the base element -> Document
+    // if ownerDocument is null then el is the document itself.
     getDocument: () => el.ownerDocument || el
   };
 }
 
+// === Class Definition ===
+
+/**
+ * TextHighlighter class for creating and managing text highlights.
+ */
 class TextHighlighter {
+  /**
+   * @param {HTMLElement} element - Target element to attach the highlighter to.
+   * @param {object} [options] - Configuration options.
+   */
   constructor(element, options = {}) {
     if (!element) throw new Error('Missing anchor element');
     this.el = element;
@@ -164,25 +234,30 @@ class TextHighlighter {
     this._bindEvents();
   }
 
+  /** Bind event listeners */
   _bindEvents() {
     this.el.addEventListener('mouseup', this._boundHighlightHandler);
     this.el.addEventListener('touchend', this._boundHighlightHandler);
   }
 
+  /** Remove event listeners */
   _unbindEvents() {
     this.el.removeEventListener('mouseup', this._boundHighlightHandler);
     this.el.removeEventListener('touchend', this._boundHighlightHandler);
   }
 
+  /** Destroy the highlighter instance */
   destroy() {
     this._unbindEvents();
     dom(this.el).removeClass(this.options.contextClass);
   }
 
+  /** Handle highlight action on selection */
   highlightHandler() {
     this.doHighlight();
   }
 
+  /** Highlight the current text selection */
   doHighlight(keepRange = false) {
     const range = dom(this.el).getRange();
     if (!range || range.collapsed) return;
@@ -196,7 +271,7 @@ class TextHighlighter {
     }
     if (!keepRange) dom(this.el).removeAllRanges();
   }
-
+  /** Highlight the range with a wrapper */
   highlightRange(range, wrapper) {
     const result = refineRangeBoundaries(range);
     let node = result.startContainer;
@@ -232,12 +307,14 @@ class TextHighlighter {
     return highlights;
   }
 
+  /** Normalize highlights by flattening and merging */
   normalizeHighlights(highlights) {
     this.flattenNestedHighlights(highlights);
     this.mergeSiblingHighlights(highlights);
     return unique(highlights.filter(hl => hl.parentElement));
   }
 
+  /** Flatten nested highlights and merge them */
   flattenNestedHighlights(highlights) {
     sortByDepth(highlights, true);
     let again;
@@ -258,6 +335,7 @@ class TextHighlighter {
     } while (again);
   }
 
+  /** Merge sibling highlights with the same color */
   mergeSiblingHighlights(highlights) {
     highlights.forEach(highlight => {
       const prev = highlight.previousSibling;
@@ -274,6 +352,7 @@ class TextHighlighter {
     });
   }
 
+  /** Remove highlights from the container */
   removeHighlights(container = this.el) {
     const highlights = this.getHighlights({ container });
     const mergeSiblings = node => {
@@ -304,10 +383,12 @@ class TextHighlighter {
     return grouped ? groupHighlights(highlights) : highlights;
   }
 
+  /** Check if highlight element */
   isHighlight(el) {
     return el?.nodeType === NODE_TYPE.ELEMENT_NODE && el.hasAttribute(DATA_ATTR);
   }
 
+  /** Serialize highlights */
   serializeHighlights() {
     const highlights = this.getHighlights();
     const refEl = this.el;
@@ -328,6 +409,7 @@ class TextHighlighter {
     }));
   }
 
+  /** Deserialize highlights */
   deserializeHighlights(json) {
     if (!json) return [];
     let highlights = [];
@@ -363,6 +445,9 @@ class TextHighlighter {
     wnd.scrollTo(scrollX, scrollY);
   }
 
+  /**
+   * Static method to create the highlight wrapper element
+   */
   static createWrapper(options) {
     const span = document.createElement('span');
     span.style.backgroundColor = options.color;
@@ -371,6 +456,8 @@ class TextHighlighter {
     return span;
   }
 }
+
+// === Exports ===
 
 export {
   TextHighlighter,
@@ -386,11 +473,12 @@ export {
   IGNORE_TAGS
 };
 
+
 /*
-Usage:
-In your HTML:
-<script type="module">
-  import { TextHighlighter } from './text-highlighter.js';
-  const highlighter = new TextHighlighter(document.getElementById('content'));
-</script>
-*/
+ * Usage Example:
+ *
+ * <script type="module">
+ *   import { TextHighlighter } from './text-highlighter.js';
+ *   const highlighter = new TextHighlighter(document.getElementById('content'));
+ * </script>
+ */

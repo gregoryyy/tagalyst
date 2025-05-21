@@ -1,3 +1,4 @@
+unversioned/
 .DS_Store
 node_modules/
 build/content.js

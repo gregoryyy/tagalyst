@@ -10,6 +10,39 @@ Highlight + Tag + Annotate any webpage content.
 - View saved snippets in popup
 
 
+## Concept
+
+- Structures:
+  - Snippet = highlighted location on a Web page, PDF or other document
+  - Tag = short reusable label for a snippet
+  - Note = annotation for a snippet
+  - Theme = target themes that can be constructed by putting together tags
+  - Date = timestamp of snippet
+  - Collection = a set of snippets and documents
+  - Transpose = invert the snippet-first collection to a theme- or tag-first structure
+- Creation: on a given web page or llm chat prompt or response:
+  - highlight snippet by marking it
+  - add one or more tags and optional note
+  - add theme (also represented as a tag)
+- Management: for all snippets:
+  - Browse by source, tag, theme, date
+  - Search with facets tag, theme, date, full text
+  - Transpose: similar to search but adjusting search results
+  - Document: create document for a transposed list by adding information
+- Exchange:
+  - Export and download
+  - Upload and import
+- Nonfunctionals:
+  - Work with SPAs and dynamic content (e.g., via data-* tags or hashes)
+  - Easy integration with common UX
+  - Support for desktop and mobile Chrome (poss. Safari)
+  - Extensible
+- Long-term:
+  - Community
+  - Visual snippet browser
+  - Freshmind graph and topic map views
+  - Connecting snippets between users (human and agentic)
+
 # Development
 
 ## Project structure
@@ -46,7 +79,6 @@ tagalyst-extension/
 
 ## Develop
 
-
 ```bash
 # prerequisite (Mac example):
 brew install node
@@ -64,22 +96,29 @@ npm run dev
 
 ## Run
 
-Load unpacked from `build/` in `chrome://extensions` (first time)
-Update in `chrome://extensions`
+- Enable Developer Mode (toogle top right):
+- Add extension `build/` folder using `chrome://extensions` pane:
+  - First time or deep reset: "Load unpacked" on top of page (deletes all data)
+  - Update: (Extension pane) / "Update" (updates all code)
+- Reload any page using the extension
 
 ## Debug
 
-- Developer Tools: access `content.js` console
-- `chrome://extensions` / Tagalyst / "Inspect views": access `background.js` console
-- Extension menu / Inspect (right click on menu page): access to `popup.js` console
-
+- Chrome Dev Tools (DT, cmd-opt-i) offer access on context:
+  - Sources pane: debugger on (bundled) scripts
+  - Console: messages and interaction
+  - Application: Storage / Extension Storage / (Extension) / Local 
+- There are several runtime contexts (see Appendix) with several DT windows to open:
+  - Content script `content.js`: DT  / Sources / (Extension) / content.js
+  - Background Worker `background.js`: `chrome://extensions` / (Extension tile) / "Inspect worker" --> new DT window
+  - Popup script `popup.js`: Extensions popup / Inspect (right click on page) --> new DT window
+  - Injected script `injected.js`: DT / Sources / Content scripts or top frame or page domain (when dynamically loaded)
 
 # Appendix: Chrome Extension Structure
 
 - Manifest V3 – ES Modules
 - relative to /build directory
-
-see: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
+- This is via LLM query and iterative correction: https://chatgpt.com/share/682c32b0-9580-8012-9a16-f20d8cd6a73c
 
 ## 1. `background.js`
 - **Job**: Central controller, handles extension lifecycle events
@@ -150,4 +189,5 @@ If bundled, else `./modules`:
   - ✅ ES6 modules (must be resolvable by Rollup/Webpack/etc.)
 - **Typical tasks**:
   - e.g. `uuid`, `marked`, `lodash-es`, custom client SDKs
-- **Notes**: Avoid direct imports from `content.js` unless bundled; use only ESM-compatible libraries
+- **Notes**: 
+  - Avoid direct imports from `content.js` unless bundled; use only ESM-compatible libraries
