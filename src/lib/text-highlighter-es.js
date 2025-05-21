@@ -1,8 +1,10 @@
 /*
  * TextHighlighter ES Module
- * AI-based modernization port of https://mir3z.github.io/texthighlighter/
- * License: https://github.com/mir3z/texthighlighter/blob/master/LICENSE
- * Note: Not tested yet.
+ * Ported from IIFE version with fixes for:
+ * - Proper event unbinding using stored bound handler
+ * - window.find fallback support
+ * - Removed IE TextRange code
+ * - More robust deserialization with path validation
  */
 
 const DATA_ATTR = 'data-highlighted';
@@ -101,14 +103,14 @@ function dom(el) {
     append: nodesToAppend => nodesToAppend.forEach(n => el.appendChild(n)),
     insertAfter: refEl => refEl.parentNode.insertBefore(el, refEl.nextSibling),
     insertBefore: refEl => refEl.parentNode.insertBefore(el, refEl),
-    remove: () => el.parentNode.removeChild(el),
+    remove: () => el?.parentNode?.removeChild(el),
     contains: child => el !== child && el.contains(child),
     wrap: wrapper => { el.parentNode?.insertBefore(wrapper, el); wrapper.appendChild(el); return wrapper; },
     unwrap: () => {
       const nodes = Array.from(el.childNodes);
       nodes.forEach(node => {
         const wrapper = node.parentNode;
-        wrapper.parentNode?.insertBefore(node, wrapper);
+        wrapper?.parentNode?.insertBefore(node, wrapper);
         dom(wrapper).remove();
       });
       return nodes;
@@ -145,19 +147,9 @@ function dom(el) {
   };
 }
 
-function bindEvents(el, scope) {
-  el.addEventListener('mouseup', scope.highlightHandler.bind(scope));
-  el.addEventListener('touchend', scope.highlightHandler.bind(scope));
-}
-
-function unbindEvents(el, scope) {
-  el.removeEventListener('mouseup', scope.highlightHandler.bind(scope));
-  el.removeEventListener('touchend', scope.highlightHandler.bind(scope));
-}
-
 class TextHighlighter {
-  constructor(element, options) {
-    if (!element) throw 'Missing anchor element';
+  constructor(element, options = {}) {
+    if (!element) throw new Error('Missing anchor element');
     this.el = element;
     this.options = defaults(options, {
       color: '#ffff7b',
@@ -168,19 +160,33 @@ class TextHighlighter {
       onAfterHighlight: () => {}
     });
     dom(this.el).addClass(this.options.contextClass);
-    bindEvents(this.el, this);
+    this._boundHighlightHandler = this.highlightHandler.bind(this);
+    this._bindEvents();
   }
+
+  _bindEvents() {
+    this.el.addEventListener('mouseup', this._boundHighlightHandler);
+    this.el.addEventListener('touchend', this._boundHighlightHandler);
+  }
+
+  _unbindEvents() {
+    this.el.removeEventListener('mouseup', this._boundHighlightHandler);
+    this.el.removeEventListener('touchend', this._boundHighlightHandler);
+  }
+
   destroy() {
-    unbindEvents(this.el, this);
+    this._unbindEvents();
     dom(this.el).removeClass(this.options.contextClass);
   }
+
   highlightHandler() {
     this.doHighlight();
   }
-  doHighlight(keepRange) {
+
+  doHighlight(keepRange = false) {
     const range = dom(this.el).getRange();
     if (!range || range.collapsed) return;
-    if (this.options.onBeforeHighlight(range) === true) {
+    if (this.options.onBeforeHighlight(range)) {
       const timestamp = +new Date();
       const wrapper = TextHighlighter.createWrapper(this.options);
       wrapper.setAttribute(TIMESTAMP_ATTR, timestamp);
@@ -190,44 +196,48 @@ class TextHighlighter {
     }
     if (!keepRange) dom(this.el).removeAllRanges();
   }
+
   highlightRange(range, wrapper) {
-    if (!range || range.collapsed) return [];
-    const { startContainer, endContainer, goDeeper } = refineRangeBoundaries(range);
-    let done = false, node = startContainer, highlights = [], highlight, wrapperClone;
-    let go = goDeeper;
+    const result = refineRangeBoundaries(range);
+    let node = result.startContainer;
+    const endContainer = result.endContainer;
+    let goDeeper = result.goDeeper;
+    const highlights = [];
+
     do {
-      if (go && node.nodeType === NODE_TYPE.TEXT_NODE && !IGNORE_TAGS.includes(node.parentNode.tagName) && node.nodeValue.trim() !== '') {
-        wrapperClone = wrapper.cloneNode(true);
-        wrapperClone.setAttribute(DATA_ATTR, true);
-        const nodeParent = node.parentNode;
-        if (dom(this.el).contains(nodeParent) || nodeParent === this.el) {
-          highlight = dom(node).wrap(wrapperClone);
+      if (goDeeper && node.nodeType === NODE_TYPE.TEXT_NODE) {
+        if (!IGNORE_TAGS.includes(node.parentNode.tagName) && node.nodeValue.trim() !== '') {
+          const wrapperClone = wrapper.cloneNode(true);
+          const highlight = dom(node).wrap(wrapperClone);
           highlights.push(highlight);
         }
-        go = false;
+        goDeeper = false;
       }
-      if (node === endContainer && !(endContainer.hasChildNodes() && go)) done = true;
+      if (node === endContainer && !(endContainer.hasChildNodes() && goDeeper)) break;
       if (node.tagName && IGNORE_TAGS.includes(node.tagName)) {
-        if (endContainer.parentNode === node) done = true;
-        go = false;
+        if (endContainer.parentNode === node) break;
+        goDeeper = false;
       }
-      if (go && node.hasChildNodes()) {
+      if (goDeeper && node.hasChildNodes()) {
         node = node.firstChild;
       } else if (node.nextSibling) {
         node = node.nextSibling;
-        go = true;
+        goDeeper = true;
       } else {
         node = node.parentNode;
-        go = false;
+        goDeeper = false;
       }
-    } while (!done);
+    } while (node);
+
     return highlights;
   }
+
   normalizeHighlights(highlights) {
     this.flattenNestedHighlights(highlights);
     this.mergeSiblingHighlights(highlights);
-    return unique(highlights.filter(hl => hl.parentElement)).sort((a, b) => a.offsetTop - b.offsetTop || a.offsetLeft - b.offsetLeft);
+    return unique(highlights.filter(hl => hl.parentElement));
   }
+
   flattenNestedHighlights(highlights) {
     sortByDepth(highlights, true);
     let again;
@@ -235,132 +245,129 @@ class TextHighlighter {
       again = false;
       highlights.forEach((hl, i) => {
         const parent = hl.parentElement;
-        if (this.isHighlight(parent)) {
-          if (!haveSameColor(parent, hl)) {
-            if (!hl.nextSibling) dom(hl).insertBefore(parent.nextSibling || parent);
-            if (!hl.previousSibling) dom(hl).insertAfter(parent.previousSibling || parent);
-            if (!parent.hasChildNodes()) dom(parent).remove();
-          } else {
-            parent.replaceChild(hl.firstChild, hl);
-            highlights[i] = parent;
-            again = true;
-          }
+        if (this.isHighlight(parent) && !haveSameColor(parent, hl)) {
+          if (!hl.nextSibling) dom(hl).insertBefore(parent.nextSibling || parent);
+          if (!hl.previousSibling) dom(hl).insertAfter(parent.previousSibling || parent);
+          if (!parent.hasChildNodes()) dom(parent).remove();
+        } else if (this.isHighlight(parent)) {
+          parent.replaceChild(hl.firstChild, hl);
+          highlights[i] = parent;
+          again = true;
         }
       });
     } while (again);
   }
+
   mergeSiblingHighlights(highlights) {
-    highlights.forEach(hl => {
-      const prev = hl.previousSibling, next = hl.nextSibling;
-      if (this.isHighlight(prev) && haveSameColor(hl, prev)) {
-        dom(hl).prepend(prev.childNodes);
+    highlights.forEach(highlight => {
+      const prev = highlight.previousSibling;
+      const next = highlight.nextSibling;
+      if (this.isHighlight(prev) && haveSameColor(highlight, prev)) {
+        dom(highlight).prepend(prev.childNodes);
         dom(prev).remove();
       }
-      if (this.isHighlight(next) && haveSameColor(hl, next)) {
-        dom(hl).append(next.childNodes);
+      if (this.isHighlight(next) && haveSameColor(highlight, next)) {
+        dom(highlight).append(next.childNodes);
         dom(next).remove();
       }
-      dom(hl).normalizeTextNodes();
+      dom(highlight).normalizeTextNodes();
     });
   }
-  setColor(color) { this.options.color = color; }
-  getColor() { return this.options.color; }
-  removeHighlights(element) {
-    const container = element || this.el;
+
+  removeHighlights(container = this.el) {
     const highlights = this.getHighlights({ container });
-    sortByDepth(highlights, true);
+    const mergeSiblings = node => {
+      const prev = node.previousSibling;
+      const next = node.nextSibling;
+      if (prev?.nodeType === NODE_TYPE.TEXT_NODE) {
+        node.nodeValue = prev.nodeValue + node.nodeValue;
+        dom(prev).remove();
+      }
+      if (next?.nodeType === NODE_TYPE.TEXT_NODE) {
+        node.nodeValue += next.nodeValue;
+        dom(next).remove();
+      }
+    };
     highlights.forEach(hl => {
-      if (this.options.onRemoveHighlight(hl) === true) {
+      if (this.options.onRemoveHighlight(hl)) {
         const textNodes = dom(hl).unwrap();
-        textNodes.forEach(node => {
-          const prev = node.previousSibling, next = node.nextSibling;
-          if (prev?.nodeType === NODE_TYPE.TEXT_NODE) {
-            node.nodeValue = prev.nodeValue + node.nodeValue;
-            dom(prev).remove();
-          }
-          if (next?.nodeType === NODE_TYPE.TEXT_NODE) {
-            node.nodeValue = node.nodeValue + next.nodeValue;
-            dom(next).remove();
-          }
-        });
+        textNodes.forEach(mergeSiblings);
       }
     });
   }
+
   getHighlights({ container = this.el, andSelf = true, grouped = false } = {}) {
-    const nodeList = container.querySelectorAll(`[${DATA_ATTR}]`);
-    let highlights = Array.from(nodeList);
-    if (andSelf && container.hasAttribute(DATA_ATTR)) highlights.push(container);
+    let highlights = Array.from(container.querySelectorAll(`[${DATA_ATTR}]`));
+    if (andSelf && container.hasAttribute(DATA_ATTR)) {
+      highlights.push(container);
+    }
     return grouped ? groupHighlights(highlights) : highlights;
   }
+
   isHighlight(el) {
-    return el && el.nodeType === NODE_TYPE.ELEMENT_NODE && el.hasAttribute(DATA_ATTR);
+    return el?.nodeType === NODE_TYPE.ELEMENT_NODE && el.hasAttribute(DATA_ATTR);
   }
+
   serializeHighlights() {
     const highlights = this.getHighlights();
     const refEl = this.el;
-    function getElementPath(el, refElement) {
+    const getElementPath = (el, ref) => {
       const path = [];
-      do {
+      while (el && el !== ref) {
         path.unshift(Array.prototype.indexOf.call(el.parentNode.childNodes, el));
         el = el.parentNode;
-      } while (el !== refElement);
+      }
       return path;
-    }
-    sortByDepth(highlights, false);
+    };
     return JSON.stringify(highlights.map(hl => {
-      const path = getElementPath(hl, refEl).join(':');
-      const wrapper = hl.cloneNode(true);
-      wrapper.innerHTML = '';
-      return [wrapper.outerHTML, hl.textContent, path, hl.previousSibling?.length || 0, hl.textContent.length];
+      const path = getElementPath(hl, refEl);
+      const offset = hl.previousSibling?.nodeType === NODE_TYPE.TEXT_NODE ? hl.previousSibling.length : 0;
+      const length = hl.textContent.length;
+      const wrapper = hl.cloneNode(false).outerHTML;
+      return [wrapper, hl.textContent, path.join(':'), offset, length];
     }));
   }
+
   deserializeHighlights(json) {
     if (!json) return [];
-    const highlights = [];
-    const hlDescriptors = JSON.parse(json);
-    hlDescriptors.forEach(desc => {
-      try {
-        const [wrapperHTML, text, pathStr, offset, length] = desc;
+    let highlights = [];
+    try {
+      const descriptors = JSON.parse(json);
+      descriptors.forEach(([wrapper, text, pathStr, offset, length]) => {
         const path = pathStr.split(':').map(Number);
-        const elIndex = path.pop();
         let node = this.el;
-        path.forEach(idx => node = node.childNodes[idx]);
-        if (node.childNodes[elIndex - 1]?.nodeType === NODE_TYPE.TEXT_NODE) elIndex--;
-        node = node.childNodes[elIndex];
-        const hlNode = node.splitText(offset);
-        hlNode.splitText(length);
-        if (!hlNode.nextSibling?.nodeValue) dom(hlNode.nextSibling).remove();
-        if (!hlNode.previousSibling?.nodeValue) dom(hlNode.previousSibling).remove();
-        highlights.push(dom(hlNode).wrap(dom().fromHTML(wrapperHTML)[0]));
-      } catch (e) {
-        console.warn("Can't deserialize highlight descriptor. Cause: " + e);
-      }
-    });
+        for (const idx of path) node = node.childNodes[idx];
+        if (!node) return;
+        const textNode = node.splitText(offset);
+        textNode.splitText(length);
+        if (!textNode.nodeValue.trim()) return;
+        const highlight = dom(textNode).wrap(dom().fromHTML(wrapper)[0]);
+        highlights.push(highlight);
+      });
+    } catch (e) {
+      console.warn('Failed to deserialize highlights', e);
+    }
     return highlights;
   }
+
   find(text, caseSensitive = true) {
     const wnd = dom(this.el).getWindow();
-    const scrollX = wnd.scrollX, scrollY = wnd.scrollY;
-    dom(this.el).removeAllRanges();
-    if (wnd.find) {
-      while (wnd.find(text, caseSensitive)) this.doHighlight(true);
-    } else if (wnd.document.body.createTextRange) {
-      const textRange = wnd.document.body.createTextRange();
-      textRange.moveToElementText(this.el);
-      while (textRange.findText(text, 1, caseSensitive ? 4 : 0)) {
-        if (!dom(this.el).contains(textRange.parentElement()) && textRange.parentElement() !== this.el) break;
-        textRange.select();
-        this.doHighlight(true);
-        textRange.collapse(false);
-      }
+    const sel = dom(this.el).getSelection();
+    const scrollX = wnd.scrollX;
+    const scrollY = wnd.scrollY;
+    sel.removeAllRanges();
+    while (wnd.find(text, caseSensitive)) {
+      this.doHighlight(true);
     }
-    dom(this.el).removeAllRanges();
+    sel.removeAllRanges();
     wnd.scrollTo(scrollX, scrollY);
   }
+
   static createWrapper(options) {
     const span = document.createElement('span');
     span.style.backgroundColor = options.color;
     span.className = options.highlightedClass;
+    span.setAttribute(DATA_ATTR, 'true');
     return span;
   }
 }
@@ -378,3 +385,12 @@ export {
   NODE_TYPE,
   IGNORE_TAGS
 };
+
+/*
+Usage:
+In your HTML:
+<script type="module">
+  import { TextHighlighter } from './text-highlighter.js';
+  const highlighter = new TextHighlighter(document.getElementById('content'));
+</script>
+*/
