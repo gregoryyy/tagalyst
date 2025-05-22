@@ -63,9 +63,11 @@ tagalyst-extension/
 │   ├── background.js          ← Bundled background script (from Rollup)
 │   ├── content.js             ← Bundled content script (from Rollup)
 │   ├── injected.js
+│   ├── *.map                  ← Source maps (from Rollup)          
 │   ├── popup/
 │   │   ├── popup.html
-│   │   └── popup.js           ← Bundled popup script (from Rollup)
+│   │   ├── popup.js           ← Bundled popup script (from Rollup) 
+│   │   └── *.map              ← Source map (from Rollup)
 │   └── assets/
 │       └── icon48.png
 │
