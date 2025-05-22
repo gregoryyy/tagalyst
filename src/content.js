@@ -13,17 +13,6 @@ import {
 import { logInfo, logWarn, logError } from './modules/logger.js';
 import { HIGHLIGHT_CLASS } from './modules/config.js';
 
-// async function handleMouseUp() {
-//   const range = getSelectedRange();
-//   logInfo("Mouse up event detected", range);
-//   if (!range || range.collapsed) return;
-
-//   const snippet = serializeRange(range);
-//   applyHighlight(range, snippet.id);
-//   await saveSnippet(snippet);
-//   logInfo('Saved and highlighted:', snippet.text);
-// }
-
 let lastValidRange = null;
 
 // Track valid selection while active = before pointer up

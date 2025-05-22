@@ -7,16 +7,15 @@
     - [x] Multiline selection works but breaks DOM
     - [x] Single line selection does not show highlight
   - Replay
-    - [ ] Reload does not reapply highlights
-    - [ ] ...some highlights (storage format issue)
+    - [?] Reload does not reapply highlights
+    - [x] ...some highlights (storage format issue)
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved
-- Architecture
-  - [ ] Full ES port of TextHighlighter lib
-
 
 ## Features
+
+High-level: see README.md
 
 - Browser page
   - [x] Selection on a page highlights an arbitrary section of text (snippet)

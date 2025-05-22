@@ -57,6 +57,8 @@ export function applyHighlight(range, id) {
 // Serialize a highlight range into a storable snippet
 export function serializeRange(range) {
   logInfo('Range serializing', range);
+  const x = highlighter.serialize();
+  logInfo('Serialized range', x);
   return {
     text: range.toString(),
     serialized: highlighter.serialize(),
