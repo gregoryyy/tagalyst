@@ -98,6 +98,10 @@ brew install node
 npm install --save-dev rollup @rollup/plugin-node-resolve
 npm install --save-dev rollup-plugin-sourcemaps
 
+# for rangy (using rollup, not UMD import directly)
+npm install --save-dev rollup rollup-plugin-commonjs
+npm install rangy
+
 # compile src/content.js and its module imports into dist/content.js.
 npx rollup -c
 # Alternative: Use package.json and run build

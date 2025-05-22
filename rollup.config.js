@@ -1,4 +1,5 @@
 import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 
 export default [
@@ -6,7 +7,7 @@ export default [
     // must be IIFE module (self-contained "immediately invoked function expression")
     input: 'src/content.js',
     output: { file: 'build/content.js', format: 'iife', name: 'TagalystContent', sourcemap: true },
-    plugins: [resolve(), sourcemaps()]
+    plugins: [resolve(), commonjs(), sourcemaps()]
   },
   {
     // bundle background as dependency on logger etc.
