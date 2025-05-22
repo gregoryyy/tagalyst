@@ -7,9 +7,7 @@
     - [x] Multiline selection works but breaks DOM
     - [x] Single line selection does not show highlight
   - Replay
-    - [x] Reload does not reapply highlights
-      - Likely reason: content.js:892 Can't deserialize highlight descriptor. Cause: TypeError: node.splitText is not a function
-      - serialized = [] works fine
+    - [ ] Reload does not reapply highlights
     - [ ] ...some highlights (storage format issue)
 - Storage
   - [x] Data not saved to localstorage
@@ -48,12 +46,13 @@
 
 ## History
 
-- 21 May 2025  v0.2.2:
+- 22 May 2025  v0.2.3:
+  - try_rangy branch: Replace texthighlighter with newer rangy -> main
+  - Longer-term concepts
   - Fixes
-  - Add notes
-  - Popup
+- 21 May 2025  v0.2.2:
+  - Rollup branch: Fixes -> merge to main
   - Debug environment: Code maps, Debug all contexts in VS Code
-    - 
 - 20 May 2025  v0.2.1:
   - Working round-trip, with bugs 2h
   - Dev environment, research JS module types, Chrome runtime contexts and sandboxing 4h

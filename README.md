@@ -37,18 +37,18 @@ Highlight + Tag + Annotate any webpage content.
   - Easy integration with common UX
   - Support for desktop and mobile Chrome (poss. Safari)
   - Extensibility to new 
-- Long-term: Sharing (possibly premium):
-  - Knowledge Browser:
+- Long-term:
+  - Knowledge Browser (consider premium):
     - Visual snippet browser with option to rearrange (dnd) and edit
     - Freshmind graph and topic map views (self and community)
     - Integration with Notion etc.
     - RAG Queries against snippets and associated content of self
-  - Sharing and Community:
+  - Sharing and Community (consider server-based):
     - Connecting snippets between users (human and agentic)
     - Matching similar interest and idea (authorization-first)
     - RAG against community content
     - Offer MCP endpoint
-  - Model data creation:
+  - Model data creation (consider partnerships):
     - Select context to train LLMs and digital twins
     - Use to feedback good answers to foundational LLM vendors
 
@@ -129,6 +129,10 @@ npm run dev
   - Background Worker `background.js`: `chrome://extensions` / (Extension tile) / "Inspect worker" --> new DT window
   - Popup script `popup.js`: Extensions popup / Inspect (right click on page) --> new DT window
   - Injected script `injected.js`: DT / Sources / Content scripts or top frame or page domain (when dynamically loaded)
+- Start the runtime contexts in a dedicated Chrome browser with the plugin running:
+  - "Launch Extension in Chrome" from VS Code via `launch.json`
+  - All contexts are visible or open as needed
+  - Debugging from withing VS Code
 
 # Appendix: Chrome Extension Structure
 
