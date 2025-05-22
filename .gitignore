@@ -1,8 +1,10 @@
 unversioned/
+.vscode/chrome-profile
 .DS_Store
 node_modules/
 build/content.js
 build/background.js
 build/popup/popup.js
+build/**/*.map
 package-lock.json
 *.zip

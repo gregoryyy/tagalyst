@@ -8,6 +8,8 @@
     - [x] Single line selection does not show highlight
   - Replay
     - [x] Reload does not reapply highlights
+      - Likely reason: content.js:892 Can't deserialize highlight descriptor. Cause: TypeError: node.splitText is not a function
+      - serialized = [] works fine
     - [ ] ...some highlights (storage format issue)
 - Storage
   - [x] Data not saved to localstorage
@@ -32,13 +34,17 @@
   - [ ] Delete snippets
   - [ ] Change color of snippets
 - Snippet page (extension popup)
-  - [ ] List known snippets (bug)
+  - [x] List known snippets
   - [ ] Delete snippets
-  - [ ] Transpose snippets: Sort by tags
   - [ ] Search snippets: fulltext
+  - [ ] Transpose snippets: Sort by tags and other predicates, 
+  - [ ] Documents from Snippet mashups
 - Import and Export page (on snippet page)
   - [ ] Serialize to JSON
   - [ ] Import from JSON
+- Build system
+  - [x] Start in Chrome instance --> lounch.json
+  - [x] Create source maps
 
 ## History
 
@@ -46,6 +52,8 @@
   - Fixes
   - Add notes
   - Popup
+  - Debug environment: Code maps, Debug all contexts in VS Code
+    - 
 - 20 May 2025  v0.2.1:
   - Working round-trip, with bugs 2h
   - Dev environment, research JS module types, Chrome runtime contexts and sandboxing 4h

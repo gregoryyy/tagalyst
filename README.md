@@ -36,12 +36,21 @@ Highlight + Tag + Annotate any webpage content.
   - Work with SPAs and dynamic content (e.g., via data-* tags or hashes)
   - Easy integration with common UX
   - Support for desktop and mobile Chrome (poss. Safari)
-  - Extensible
-- Long-term:
-  - Community
-  - Visual snippet browser
-  - Freshmind graph and topic map views
-  - Connecting snippets between users (human and agentic)
+  - Extensibility to new 
+- Long-term: Sharing (possibly premium):
+  - Knowledge Browser:
+    - Visual snippet browser with option to rearrange (dnd) and edit
+    - Freshmind graph and topic map views (self and community)
+    - Integration with Notion etc.
+    - RAG Queries against snippets and associated content of self
+  - Sharing and Community:
+    - Connecting snippets between users (human and agentic)
+    - Matching similar interest and idea (authorization-first)
+    - RAG against community content
+    - Offer MCP endpoint
+  - Model data creation:
+    - Select context to train LLMs and digital twins
+    - Use to feedback good answers to foundational LLM vendors
 
 # Development
 
@@ -85,6 +94,7 @@ brew install node
 
 # install dependencies
 npm install --save-dev rollup @rollup/plugin-node-resolve
+npm install --save-dev rollup-plugin-sourcemaps
 
 # compile src/content.js and its module imports into dist/content.js.
 npx rollup -c

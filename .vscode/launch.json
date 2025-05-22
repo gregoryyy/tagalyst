@@ -1,0 +1,18 @@
+{
+  "version": "0.2.1",
+  "configurations": [
+    
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Extension in Chrome",
+      "url": "https://example.com",  // Use a test site that triggers your content script
+      "webRoot": "${workspaceFolder}",
+      "runtimeArgs": [
+        "--disable-extensions-except=${workspaceFolder}/build",
+        "--load-extension=${workspaceFolder}/build"
+      ],
+      "userDataDir": "${workspaceFolder}/.vscode/chrome-profile"
+    }
+  ]
+}
