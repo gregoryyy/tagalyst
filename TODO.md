@@ -46,6 +46,10 @@ High-level: see README.md
 
 ## History
 
+- 23 May 2025  v0.3:
+  - rangy working 
+  - bug: last selection is ignored (although in stored)
+  - test cascaded restore based on text location and content (cf. Web Annotation model)
 - 22 May 2025  v0.2.3:
   - try_rangy branch: Replace texthighlighter with newer rangy -> main
   - Longer-term concepts

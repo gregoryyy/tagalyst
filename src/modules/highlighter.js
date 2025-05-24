@@ -5,7 +5,7 @@ import 'rangy/lib/rangy-classapplier';
 import 'rangy/lib/rangy-serializer';
 
 import { logInfo, logWarn } from './logger.js';
-import { HIGHLIGHT_CLASS, HIGHLIGHT_STYLE } from './config.js';
+import { highlightClass, highlightStyle } from './config.js';
 
 // Initialize Rangy once
 rangy.init();
@@ -15,11 +15,11 @@ export const highlighter = rangy.createHighlighter();
 
 // Add a class applier for the highlight class with styling
 highlighter.addClassApplier(
-  rangy.createClassApplier(HIGHLIGHT_CLASS, {
+  rangy.createClassApplier(highlightClass, {
     elementTagName: 'span',
     elementProperties: {
-      className: HIGHLIGHT_CLASS,
-      style: HIGHLIGHT_STYLE
+      className: highlightClass,
+      style: highlightStyle
     }
   })
 );
@@ -46,7 +46,7 @@ export function applyHighlight(range, id) {
   rangy.getSelection().addRange(range);
   highlighter.highlightSelection(HIGHLIGHT_CLASS);
 
-  const spans = Array.from(document.querySelectorAll(`.${HIGHLIGHT_CLASS}`))
+  const spans = Array.from(document.querySelectorAll(`.${highlightClass}`))
     .filter(el => !el.dataset.tagalystId); // only new highlights
 
   spans.forEach(span => {
@@ -85,7 +85,7 @@ export function restoreHighlight(snippet) {
     highlighter.deserialize(snippet.serialized);
 
     // Add dataset ID to restored highlights
-    const spans = document.querySelectorAll(`.${HIGHLIGHT_CLASS}`);
+    const spans = document.querySelectorAll(`.${highlightClass}`);
     spans.forEach(span => {
       if (!span.dataset.tagalystId) {
         span.dataset.tagalystId = snippet.id;

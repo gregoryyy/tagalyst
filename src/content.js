@@ -1,17 +1,7 @@
-import {
-  getSelectedRange,
-  serializeRange,
-  applyHighlight,
-  restoreHighlight
-} from './modules/highlighter.js';
-
-import {
-  saveSnippet,
-  loadSnippets
-} from './modules/storage.js';
-
+import { serializeRange, applyHighlight, restoreHighlight } from './modules/highlighter.js';
+import { saveSnippet, loadSnippets } from './modules/storage.js';
 import { logInfo, logWarn, logError } from './modules/logger.js';
-import { HIGHLIGHT_CLASS } from './modules/config.js';
+import { highlightClass } from './modules/config.js';
 
 let lastValidRange = null;
 
@@ -72,7 +62,7 @@ onReady(() => {
 // Inject highlight style dynamically
 const style = document.createElement('style');
 style.textContent = `
-  .${HIGHLIGHT_CLASS} {
+  .${highlightClass} {
     background-color: yellow;
     padding: 0.1em;
     border-radius: 2px;
