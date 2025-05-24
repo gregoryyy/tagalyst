@@ -1,4 +1,7 @@
 {
+  "name": "tagalyst",
+  "version": "0.3.0",
+  "type": "module",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w"
