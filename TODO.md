@@ -11,7 +11,7 @@
     - [x] ...some highlights (storage format issue)
     - [x] last highlight on one page not displayed on reload
     - [ ] Lookup breaks for dynamic pages incl. unlost markit and chatGPT UI
-      - [on] try robust escalating variant in snippet.js
+      - [x] try robust escalating variant in snippet.js
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved
@@ -57,9 +57,11 @@ High-level: see README.md
 
 ## History
 
-- 24 May 2025  v0.3.x:
-  - Bug fixed
-  - Scroll to snippet
+- 24 May 2025  v0.4.0:
+  - scroll to snippet
+  - snippet structure and serialization
+  - robust multi-anchor positioning and escalated restore
+  - fix: last selection bug
 - 23 May 2025  v0.3:
   - rangy working 
   - bug: last selection is ignored (although in stored)

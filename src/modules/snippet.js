@@ -7,6 +7,7 @@ import * as textPosition from "dom-anchor-text-position";
 import * as textQuote from "dom-anchor-text-quote";
 import { maxMatchLevel } from "./config.js";
 import { applyHighlight, restoreHighlight, highlighter } from './highlighter.js';
+import { logDebug } from "./logger.js";
 
 /**
  * Snippet data class
@@ -84,7 +85,7 @@ export class Snippet {
           return true;
         }
       } catch (e) {
-        // continue to fallback
+        logDebug('1. Failed to restore highlight from rangy serialization:', e);
       }
     }
     // 2. TextPosition (char offsets)
@@ -95,7 +96,9 @@ export class Snippet {
           applyHighlight(range, this.id);
           return true;
         }
-      } catch (e) {}
+      } catch (e) {
+        logDebug('2. Failed to restore highlight from text position:', e);
+      }
     }
     // 3. TextQuote (content + context)
     if (maxMatchLevel >= 3 && this.anchors.textQuote) {
@@ -105,7 +108,9 @@ export class Snippet {
           applyHighlight(range, this.id);
           return true;
         }
-      } catch (e) {}
+      } catch (e) {
+        logDebug('3. Failed to restore highlight from text content:', e);
+      }
     }
     // 4. Fallback: content search
     if (maxMatchLevel >= 4) {
@@ -123,6 +128,7 @@ export class Snippet {
         }
       }
     }
+    logDebug(`4. Failed to restore highlight for snippet ${this.id} on ${this.url}`);
     return false;
   }
 }

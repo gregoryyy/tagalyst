@@ -1,6 +1,6 @@
 import { Snippet } from './modules/snippet.js';
 import { saveSnippet, loadSnippets } from './modules/storage.js';
-import { logInfo, logWarn, logError } from './modules/logger.js';
+import { logInfo, logWarn, logError, logDebug } from './modules/logger.js';
 import { highlightClass, highlightStyle, highlightFlashClass, highlightFlashStyle } from './modules/config.js';
 
 let lastValidRange = null;
@@ -37,6 +37,7 @@ async function restoreAllSnippets() {
   for (const snippetObj of snippets) {
     if (snippetObj.url === window.location.href) {
       try {
+        logDebug(`Restoring snippet with ID: ${snippetObj.id} for URL: ${snippetObj.url}`);
         const snippet = new Snippet(snippetObj);
         snippet.restoreHighlight(document.body);
       } catch (error) {

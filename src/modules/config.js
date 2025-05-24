@@ -31,3 +31,9 @@ export const dataStore = chrome.storage.local;
  * 3 = text content + context (TextMatch), 4 = text content only.
  */
 export const maxMatchLevel = 3;
+
+/**
+ * The debug level for logging.
+ * 0 = none, 1 = only fatal, 2 = errors, 3 = warnings, 4 = info, 5 = debug
+ */
+export const debugLevel = 5;
