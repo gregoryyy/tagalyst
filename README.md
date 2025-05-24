@@ -63,6 +63,7 @@ tagalyst-extension/
 │   ├── background.js          ← Bundled background script (from Rollup)
 │   ├── content.js             ← Bundled content script (from Rollup)
 │   ├── injected.js
+│   ├── licenses.txt           ← Compiled licenses of dependencies
 │   ├── *.map                  ← Source maps (from Rollup)          
 │   ├── popup/
 │   │   ├── popup.html
@@ -76,13 +77,16 @@ tagalyst-extension/
 │   ├── content.js
 │   ├── popup.js
 │   └── modules/
-│       ├── config.js
+│       ├── config.js          ← Configuration for backend and appearance
 │       ├── highlighter.js
 │       ├── logger.js
+│       ├── snippet.js         ← Snippet data class
 │       └── storage.js
 │
 ├── node_modules               ← Source modules via npm install
+├── package.json               ← Dependencies as packages
 ├── rollup.config.js
+├── LICENSE                    ← License for this extension
 ├── README.md
 ├── TODO.md
 └── .gitignore
@@ -101,7 +105,10 @@ npm install --save-dev rollup-plugin-license
 
 # for rangy (using rollup, not UMD import directly)
 npm install --save-dev rollup rollup-plugin-commonjs
-npm install rangy
+npm install rangy uuid dom-anchor-text-position dom-anchor-text-quote
+
+# optional: check dependencies
+npx npm-check
 
 # compile src/content.js and its module imports into dist/content.js.
 npx rollup -c

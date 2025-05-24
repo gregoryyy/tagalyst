@@ -1,7 +1,7 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import  license from 'rollup-plugin-license';
+import license from 'rollup-plugin-license';
 
 export default [
   {

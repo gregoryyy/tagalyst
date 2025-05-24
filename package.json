@@ -1,6 +1,6 @@
 {
   "name": "tagalyst",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
@@ -9,13 +9,15 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "rollup": "^4.41.0",
+    "rollup": "^4.41.1",
     "rollup-license-plugin": "^3.0.2",
     "rollup-plugin-sourcemaps": "^0.6.3"
   },
   "dependencies": {
     "dom-anchor-text-position": "^5.0.0",
     "dom-anchor-text-quote": "^4.0.2",
-    "rangy": "^1.3.2"
+    "rangy": "^1.3.2",
+    "rollup-plugin-license": "^3.6.0",
+    "uuid": "^11.1.0"
   }
 }

@@ -1,18 +1,17 @@
-// draft implementation:
-// - structured snippet object
-// - robust text restore using fallbacks textPosition and textQuote
-// TODO: merge with highlighter
+// snippet.js
 
 import { v4 as uuidv4 } from "uuid";
 import rangy from "rangy";
 import "rangy/lib/rangy-serializer";
-import * as textPosition from "dom-anchor-text-position.js";
-import * as textQuote from "dom-anchor-text-quote.js";
+import * as textPosition from "dom-anchor-text-position";
+import * as textQuote from "dom-anchor-text-quote";
 import { maxMatchLevel } from "./config.js";
+import { applyHighlight, restoreHighlight, highlighter } from './highlighter.js';
 
 /**
  * Snippet data class
- * Stores all 3 selectors for robust anchoring.
+ * Stores all 3 selectors for robust anchoring, i.e., robust text 
+ * restore using fallbacks textPosition and textQuote
  */
 export class Snippet {
 
@@ -28,16 +27,16 @@ export class Snippet {
    * @param {string} annotation - Optional annotation for the snippet
    * @param {Object} anchors - Anchors for the snippet
    * @param {Object} style - Style for the snippet
-   */
+   */  
   constructor({ id, url, text, annotation = "", anchors = {}, style = "tagalyst-highlight" }) {
     this.id = id;
     this.url = url;
     this.text = text;
     this.annotation = annotation;
-    this.anchors = anchors; // { rangySerialized, textPosition, textQuote }
-    this.style = "tagalyst-highlight";
+    this.anchors = anchors;
+    this.style = style;
   }
-
+  
   /**
    * Create a snippet from the current selection
    * 
@@ -48,14 +47,19 @@ export class Snippet {
     if (!selection.rangeCount) return null;
     const range = selection.getRangeAt(0);
 
+    // Create highlight and serialize it
+    const snippetId = uuidv4();
+    const highlight = applyHighlight(range, snippetId);
+    const rangySerialized = highlighter.serialize({ highlights: [highlight] });
+
     const anchors = {
-      rangySerialized: rangy.serializeRange(range, true, root),
-      textPosition: textPosition.fromRange(root, range), // {start, end}
-      textQuote: textQuote.fromRange(root, range)        // {exact, prefix, suffix}
+      rangySerialized, // highlight serialization for robust restore
+      textPosition: textPosition.fromRange(root, range),
+      textQuote: textQuote.fromRange(root, range)
     };
 
     return new Snippet({
-      id: uuidv4(),
+      id: snippetId,
       url: window.location.href,
       text: selection.toString(),
       annotation: "",
@@ -70,22 +74,25 @@ export class Snippet {
    * @returns 
    */
   restoreHighlight(root = document.body) {
-    // 1. Rangy (DOM structure)
+    // 1. Rangy Highlight (DOM structure)
     if (maxMatchLevel >= 1 && this.anchors.rangySerialized) {
       try {
-        const range = rangy.deserializeRange(this.anchors.rangySerialized, root);
-        if (range) {
-          applyHighlightToRange(range);
+        // If the serialization doesn't look like a highlight serialization,
+        // skip to fallback (e.g. old data with range serialization)
+        if (typeof this.anchors.rangySerialized === 'string' && this.anchors.rangySerialized.includes('type:textContent')) {
+          restoreHighlight(this);
           return true;
         }
-      } catch (e) {}
+      } catch (e) {
+        // continue to fallback
+      }
     }
     // 2. TextPosition (char offsets)
     if (maxMatchLevel >= 2 && this.anchors.textPosition) {
       try {
-        const range = textPosition.toRange(root, this.anchors.textPosition); // ({start, end})
+        const range = textPosition.toRange(root, this.anchors.textPosition);
         if (range) {
-          applyHighlightToRange(range);
+          applyHighlight(range, this.id);
           return true;
         }
       } catch (e) {}
@@ -95,7 +102,7 @@ export class Snippet {
       try {
         const range = textQuote.toRange(root, this.anchors.textQuote);
         if (range) {
-          applyHighlightToRange(range);
+          applyHighlight(range, this.id);
           return true;
         }
       } catch (e) {}
@@ -103,19 +110,19 @@ export class Snippet {
     // 4. Fallback: content search
     if (maxMatchLevel >= 4) {
       const text = this.text;
-      const textNode = findTextNode(root, text); 
-      if (textNode) {
-        const range = document.createRange();
-        const startIndex = textNode.textContent.indexOf(text);
-        range.setStart(textNode, startIndex);
-        range.setEnd(textNode, startIndex + text.length);
-        applyHighlightToRange(range);
-        return true;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+      while (node = walker.nextNode()) {
+        const idx = node.textContent.indexOf(text);
+        if (idx !== -1) {
+          const range = document.createRange();
+          range.setStart(node, idx);
+          range.setEnd(node, idx + text.length);
+          applyHighlight(range, this.id);
+          return true;
+        }
       }
+    }
     return false;
   }
 }
-
-
-
-

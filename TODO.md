@@ -11,7 +11,7 @@
     - [x] ...some highlights (storage format issue)
     - [x] last highlight on one page not displayed on reload
     - [ ] Lookup breaks for dynamic pages incl. unlost markit and chatGPT UI
-      - try robust escalating variant in snippet.js
+      - [on] try robust escalating variant in snippet.js
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved

@@ -27,6 +27,7 @@ export const dataStore = chrome.storage.local;
 
 /**
  * The maximum escalation level for matching page content with snippets.
- * 1 = DOM structure (XPath / Rangy), 2 = text position (TextPosition), 3 = text content + context (TextMatch)
+ * 1 = DOM structure (XPath / Rangy), 2 = text position (TextPosition), 
+ * 3 = text content + context (TextMatch), 4 = text content only.
  */
 export const maxMatchLevel = 3;

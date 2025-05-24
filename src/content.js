@@ -1,4 +1,4 @@
-import { serializeHighlight, applyHighlight, restoreHighlight } from './modules/highlighter.js';
+import { Snippet } from './modules/snippet.js';
 import { saveSnippet, loadSnippets } from './modules/storage.js';
 import { logInfo, logWarn, logError } from './modules/logger.js';
 import { highlightClass, highlightStyle, highlightFlashClass, highlightFlashStyle } from './modules/config.js';
@@ -22,28 +22,25 @@ document.addEventListener('pointerup', async () => {
     logInfo("Pointer up: No valid range to highlight.");
     return;
   }
-
-  const snippetId = crypto.randomUUID();
-  // 1. Apply highlight to DOM and get highlight object
-  const highlight = applyHighlight(lastValidRange, snippetId);
-  // 2. Serialize only this highlight
-  const snippet = serializeHighlight(highlight);
-  snippet.id = snippetId;
-  // 3. Save snippet
-  await saveSnippet(snippet);
-  logInfo('Saved and highlighted:', snippet.text);
+  const selection = window.getSelection();
+  const snippet = Snippet.fromSelection(selection, document.body);
+  if (snippet) {
+    await saveSnippet(snippet);
+    logInfo('Saved and highlighted:', snippet.text);
+  }
   lastValidRange = null;
 });
 
 async function restoreAllSnippets() {
   const snippets = await loadSnippets();
   logInfo('Restoring snippets:', snippets);
-  for (const snippet of snippets) {
-    if (snippet.url === window.location.href) {
+  for (const snippetObj of snippets) {
+    if (snippetObj.url === window.location.href) {
       try {
-        restoreHighlight(snippet);
+        const snippet = new Snippet(snippetObj);
+        snippet.restoreHighlight(document.body);
       } catch (error) {
-        logError(`Error restoring snippet ${snippet.id}:`, error);
+        logError(`Error restoring snippet ${snippetObj.id}:`, error);
       }
     }
   }
@@ -67,13 +64,14 @@ export function scrollToSnippet(snippetId) {
 // Listen for messages from the background script or popup
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'scroll-to-snippet' && msg.snippetId) {
-    scrollToSnippet(msg.snippetId); // implement as previously described
+    scrollToSnippet(msg.snippetId);
   }
 });
 
 /**
  * Check if the document is ready or still loading
  */
+
 function onReady(callback) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', callback);

@@ -1,11 +1,9 @@
-// highlighter.js
 import rangy from 'rangy/lib/rangy-core';
 import 'rangy/lib/rangy-highlighter';
 import 'rangy/lib/rangy-classapplier';
 
 import { logInfo, logWarn } from './logger.js';
 import { highlightClass, highlightStyle } from './config.js';
-
 // Initialize Rangy once
 rangy.init();
 
@@ -23,15 +21,6 @@ highlighter.addClassApplier(
   })
 );
 
-/**
- * Get the range of the current selection
- */ 
-export function getSelectedRange() {
-  const selection = rangy.getSelection();
-  logInfo('Selection applied', selection);
-  if (!selection || selection.rangeCount === 0) return null;
-  return selection.getRangeAt(0).cloneRange();
-}
 
 /**
  * Apply a highlight to a given range and return the created highlight object.
@@ -46,14 +35,11 @@ export function applyHighlight(range, id) {
   rangyRange.setStart(range.startContainer, range.startOffset);
   rangyRange.setEnd(range.endContainer, range.endOffset);
   const highlight = highlighter.highlightRanges(highlightClass, [rangyRange])[0];
-
   // Set data attribute for identification
   highlight.getHighlightElements().forEach(span => {
     span.dataset.tagalystId = id;
   });
-
   logInfo('Highlight applied', highlight);
-
   return highlight;
 }
 
@@ -61,21 +47,14 @@ export function applyHighlight(range, id) {
  * Serialize a single highlight into a storable snippet.
  *
  * @param {object} highlight
+ * @deprecated use Snippet.serialize() instead
  */
-export function serializeHighlight(highlight) {
-  logInfo('Highlight serializing', highlight);
-
+export function serializeHighlight(highlight, snippetId) {
   const serialized = highlighter.serialize({
-    highlights: [highlight] // Crucially serialize only this single highlight
+    // Serialize only this single highlight
+    highlights: [highlight]
   });
-
-  return {
-    text: highlight.getText(),
-    serialized,
-    url: window.location.href,
-    timestamp: new Date().toISOString(),
-    id: crypto.randomUUID()
-  };
+  return serialized;
 }
 
 /**
@@ -86,8 +65,7 @@ export function serializeHighlight(highlight) {
 export function restoreHighlight(snippet) {
   try {
     logInfo('Restore highlight', snippet);
-    highlighter.deserialize(snippet.serialized);
-
+    highlighter.deserialize(snippet.anchors?.rangySerialized || snippet.serialized);
     // Add dataset ID to restored highlights
     const spans = document.querySelectorAll(`.${highlightClass}`);
     spans.forEach(span => {
@@ -99,3 +77,4 @@ export function restoreHighlight(snippet) {
     logWarn('Failed to restore highlight', e);
   }
 }
+
