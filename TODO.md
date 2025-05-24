@@ -7,8 +7,9 @@
     - [x] Multiline selection works but breaks DOM
     - [x] Single line selection does not show highlight
   - Replay
-    - [?] Reload does not reapply highlights
+    - [x] Reload does not reapply highlights
     - [x] ...some highlights (storage format issue)
+    - [ ] last highlight on one page not displayed on reload
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved

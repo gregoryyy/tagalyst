@@ -5,7 +5,7 @@ import 'rangy/lib/rangy-classapplier';
 import 'rangy/lib/rangy-serializer';
 
 import { logInfo, logWarn } from './logger.js';
-import { HIGHLIGHT_CLASS } from './config.js';
+import { HIGHLIGHT_CLASS, HIGHLIGHT_STYLE } from './config.js';
 
 // Initialize Rangy once
 rangy.init();
@@ -19,16 +19,14 @@ highlighter.addClassApplier(
     elementTagName: 'span',
     elementProperties: {
       className: HIGHLIGHT_CLASS,
-      style: {
-        backgroundColor: 'yellow',
-        padding: '0.1em',
-        borderRadius: '2px'
-      }
+      style: HIGHLIGHT_STYLE
     }
   })
 );
 
-// Get the current selection range
+/**
+ * Get the range of the current selection
+ */ 
 export function getSelectedRange() {
   const selection = rangy.getSelection();
   logInfo('Selection applied', selection);
@@ -36,7 +34,13 @@ export function getSelectedRange() {
   return selection.getRangeAt(0).cloneRange();
 }
 
-// Apply a highlight and return its serialized form
+/**
+ * Apply a highlight and return its serialized form
+ * 
+ * @param {*} range 
+ * @param {*} id 
+ * @returns 
+ */
 export function applyHighlight(range, id) {
   rangy.getSelection().removeAllRanges();
   rangy.getSelection().addRange(range);
@@ -54,11 +58,13 @@ export function applyHighlight(range, id) {
   return spans;
 }
 
-// Serialize a highlight range into a storable snippet
+/**
+ * Serialize a highlight range into a storable snippet
+ * 
+ * @param {*} range
+ */
 export function serializeRange(range) {
   logInfo('Range serializing', range);
-  const x = highlighter.serialize();
-  logInfo('Serialized range', x);
   return {
     text: range.toString(),
     serialized: highlighter.serialize(),
@@ -68,7 +74,11 @@ export function serializeRange(range) {
   };
 }
 
-// Restore a highlight from a serialized snippet
+/**
+ * Restore a highlight from a serialized snippet
+ * 
+ * @param {*} snippet 
+ */
 export function restoreHighlight(snippet) {
   try {
     logInfo('Restore highlight', snippet);
