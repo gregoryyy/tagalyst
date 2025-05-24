@@ -2,8 +2,8 @@ MIT License
 
 Copyright (c) 2025 Gregor Heinrich
 
-Dependency in licenses.txt: 
- - Licenses used: MIT, ISC
+Dependencies licenses in licenses.txt: 
+ - Models used: MIT, ISC
  - For details run `npx license-checker --json > lib_licenses.json`
    after install with `npm i license-checker`
 

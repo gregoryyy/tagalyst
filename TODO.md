@@ -9,7 +9,8 @@
   - Replay
     - [x] Reload does not reapply highlights
     - [x] ...some highlights (storage format issue)
-    - [ ] last highlight on one page not displayed on reload
+    - [x] last highlight on one page not displayed on reload
+      - Rangy serializes all highlights by default
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved

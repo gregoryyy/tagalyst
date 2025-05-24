@@ -1,4 +1,4 @@
-import { serializeRange, applyHighlight, restoreHighlight } from './modules/highlighter.js';
+import { serializeHighlight, applyHighlight, restoreHighlight } from './modules/highlighter.js';
 import { saveSnippet, loadSnippets } from './modules/storage.js';
 import { logInfo, logWarn, logError } from './modules/logger.js';
 import { highlightClass } from './modules/config.js';
@@ -23,8 +23,13 @@ document.addEventListener('pointerup', async () => {
     return;
   }
 
-  const snippet = serializeRange(lastValidRange);
-  applyHighlight(lastValidRange, snippet.id);
+  const snippetId = crypto.randomUUID();
+  // 1. Apply highlight to DOM and get highlight object
+  const highlight = applyHighlight(lastValidRange, snippetId);
+  // 2. Serialize only this highlight
+  const snippet = serializeHighlight(highlight);
+  snippet.id = snippetId;
+  // 3. Save snippet
   await saveSnippet(snippet);
   logInfo('Saved and highlighted:', snippet.text);
   lastValidRange = null;
@@ -57,7 +62,6 @@ onReady(() => {
   logInfo('***** Content script ready.');
   restoreAllSnippets();
 });
-
 
 // Inject highlight style dynamically
 const style = document.createElement('style');
