@@ -1,18 +1,24 @@
 // This file defines configuration.
 
 /**
- * The highlight CSS class.
+ * The highlight CSS class and style.
  */
 export const highlightClass = 'tagalyst-highlight';
-
-/**
- * The style to use for highlighting text.
- */
 export const highlightStyle = {
         backgroundColor: 'yellow',
         padding: '0.1em',
         borderRadius: '2px'
     };
+
+/**
+ * flash highlight CSS class and style.
+ */
+export const highlightFlashClass = 'tagalyst-highlight-flash';
+export const highlightFlashStyle = {
+  outline: '2px solid orange !important',
+  transition: 'outline 0.2s'
+};
+
     
 /**
  * The storage object to use for storing snippets.

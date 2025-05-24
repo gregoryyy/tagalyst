@@ -6,11 +6,12 @@
   - Create
     - [x] Multiline selection works but breaks DOM
     - [x] Single line selection does not show highlight
-  - Replay
+  - Restore
     - [x] Reload does not reapply highlights
     - [x] ...some highlights (storage format issue)
     - [x] last highlight on one page not displayed on reload
-      - Rangy serializes all highlights by default
+    - [ ] Lookup breaks for dynamic pages incl. unlost markit and chatGPT UI
+      - try robust escalating variant in snippet.js
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved
@@ -22,6 +23,7 @@ High-level: see README.md
 - Browser page
   - [x] Selection on a page highlights an arbitrary section of text (snippet)
   - [x] Snippet is saved to local storage
+  - [x] Scroll to snippet position (incl. page change if needed)
   - [ ] Choose color
   - [ ] Add tags
   - [ ] Add note
@@ -34,19 +36,30 @@ High-level: see README.md
   - [ ] Change color of snippets
 - Snippet page (extension popup)
   - [x] List known snippets
+  - [ ] List UX and adjust size (sidebar?)
   - [ ] Delete snippets
   - [ ] Search snippets: fulltext
+- Mashups page
+  - [ ] Snippet manager page
   - [ ] Transpose snippets: Sort by tags and other predicates, 
   - [ ] Documents from Snippet mashups
+- Options page
+  - [ ] Key settings
+  - [ ] Credentials
 - Import and Export page (on snippet page)
   - [ ] Serialize to JSON
   - [ ] Import from JSON
 - Build system
   - [x] Start in Chrome instance --> lounch.json
   - [x] Create source maps
+- Chrome Webstore
+  - [ ] Publish version 1.0
 
 ## History
 
+- 24 May 2025  v0.3.x:
+  - Bug fixed
+  - Scroll to snippet
 - 23 May 2025  v0.3:
   - rangy working 
   - bug: last selection is ignored (although in stored)
