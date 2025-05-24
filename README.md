@@ -97,6 +97,7 @@ brew install node
 # install dependencies
 npm install --save-dev rollup @rollup/plugin-node-resolve
 npm install --save-dev rollup-plugin-sourcemaps
+npm install --save-dev rollup-plugin-license
 
 # for rangy (using rollup, not UMD import directly)
 npm install --save-dev rollup rollup-plugin-commonjs
@@ -177,7 +178,7 @@ npm run dev
   - Listen for or dispatch custom events
 - **Notes**: Must use `postMessage` or DOM events to communicate with the extension; bundle all logic into a single file if using modules
 
-## 4. `/popup/` 
+## 4. `popup/` 
 E.g. `popup.html`, `popup.js`:
 - **Job**: Extension UI shown when the extension icon is clicked
 - **Context**: HTML document in extension context

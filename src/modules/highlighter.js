@@ -44,7 +44,7 @@ export function getSelectedRange() {
 export function applyHighlight(range, id) {
   rangy.getSelection().removeAllRanges();
   rangy.getSelection().addRange(range);
-  highlighter.highlightSelection(HIGHLIGHT_CLASS);
+  highlighter.highlightSelection(highlightClass);
 
   const spans = Array.from(document.querySelectorAll(`.${highlightClass}`))
     .filter(el => !el.dataset.tagalystId); // only new highlights
