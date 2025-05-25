@@ -39,7 +39,7 @@ async function restoreAllSnippets() {
       try {
         logDebug(`Restoring snippet with ID: ${snippetObj.id} for URL: ${snippetObj.url}`);
         const snippet = new Snippet(snippetObj);
-        snippet.restoreHighlight(document.body);
+        snippet.restore(document.body);
       } catch (error) {
         logError(`Error restoring snippet ${snippetObj.id}:`, error);
       }

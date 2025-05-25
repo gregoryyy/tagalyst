@@ -68,83 +68,112 @@ export class Snippet {
     });
   }
 
-  /**
-   * Restore highlight for this snippet, escalating from DOM to text matching
+ /**
+   * Restore highlight for this snippet, escalating from Rangy's positional approach (similar to XPath), 
+   * to positional matching, to text content + context matching to pure content matching. The attempts
+   * depend on the maxMatchLevel configured in config.js.
    * 
    * @param {HTMLElement} root 
-   * @returns 
+   * @returns {boolean}
    */
-  restoreHighlight(root = document.body) {
-    // 1. Rangy Highlight (DOM structure)
-    if (maxMatchLevel >= 1 && this.anchors.rangySerialized) {
-      logDebug(`1. Highlight for snippet ${this.id}: restoring from rangy serialization`);
+  restore(root = document.body) {
+    const self = this;
+
+    // Shared attempt logic
+    function attemptRestore(name, restoreFn) {
+      logDebug(`${name}: attempting restore for snippet ${self.id}`);
       try {
-        // If the serialization doesn't look like a highlight serialization,
-        // skip to fallback (e.g. old data with range serialization)
-        if (typeof this.anchors.rangySerialized === 'string' && this.anchors.rangySerialized.includes('type:textContent')) {
-          restoreHighlight(this);
-          if (checkHighlight(this)) {
-            logDebug(`1. Highlight restore succeeded.`);
+        const result = restoreFn();
+        // If result is a Range, apply the highlight
+        if (result instanceof Range) {
+          applyHighlight(result, self.id);
+          if (checkHighlight(self, root)) {
+            logDebug(`${name}: Highlight restore succeeded.`);
+            return true;
+          }
+        } else if (result === true) {
+          if (checkHighlight(self, root)) {
+            logDebug(`${name}: Highlight restore succeeded.`);
             return true;
           }
         }
       } catch (e) {
-        logDebug('1. Failed to restore highlight from rangy serialization:', e);
+        logDebug(`${name}: Exception during restore:`, e);
       }
+      return false;
     }
-    // 2. TextPosition (char offsets)
-    if (maxMatchLevel >= 2 && this.anchors.textPosition) {
-      logDebug(`2. Highlight for snippet ${this.id}: restoring from text position`);
-      try {
-        const range = textPosition.toRange(root, this.anchors.textPosition);
-        if (range) {
-          applyHighlight(range, this.id);
-          if (checkHighlight(this, root)) {
-            logDebug(`2. Highlight restore succeeded.`);
-            return true; 
+
+    // Define restore strategies
+    const strategies = [
+      {
+        name: "1. Rangy serialization",
+        enabled: () => maxMatchLevel >= 1 && self.anchors.rangySerialized,
+        restoreFn: () => {
+          if (
+            typeof self.anchors.rangySerialized === 'string' &&
+            self.anchors.rangySerialized.includes('type:textContent')
+          ) {
+            // restoreHighlight is the imported function (from highlighter.js)
+            restoreHighlight(self);
+            return true; // success checked by checkHighlight
+          }
+          return false;
+        }
+      },
+      {
+        name: "2. TextPosition",
+        enabled: () => maxMatchLevel >= 2 && self.anchors.textPosition,
+        restoreFn: () => {
+          try {
+            return textPosition.toRange(root, self.anchors.textPosition);
+          } catch (e) {
+            logDebug('TextPosition: Failed to get range:', e);
+            return false;
           }
         }
-      } catch (e) {
-        logDebug('2. Failed to restore highlight from text position:', e);
-      }
-    }
-    // 3. TextQuote (content + context)
-    if (maxMatchLevel >= 3 && this.anchors.textQuote) {
-      logDebug(`3. Highlight for snippet ${this.id}: restoring from text quote`);
-      try {
-        const range = textQuote.toRange(root, this.anchors.textQuote);
-        if (range) {
-          applyHighlight(range, this.id);
-          if (checkHighlight(this, root)) {
-            logDebug(`3. Highlight restore succeeded.`);
-            return true; 
+      },
+      {
+        name: "3. TextQuote",
+        enabled: () => maxMatchLevel >= 3 && self.anchors.textQuote,
+        restoreFn: () => {
+          try {
+            return textQuote.toRange(root, self.anchors.textQuote);
+          } catch (e) {
+            logDebug('TextQuote: Failed to get range:', e);
+            return false;
           }
         }
-      } catch (e) {
-        logDebug('3. Failed to restore highlight from text content:', e);
-      }
-    }
-    // 4. Fallback: content search
-    if (maxMatchLevel >= 4) {
-      logDebug(`4. Highlight for snippet ${this.id}: restoring from text content search`);
-      const text = this.text;
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      let node;
-      while (node = walker.nextNode()) {
-        const idx = node.textContent.indexOf(text);
-        if (idx !== -1) {
-          const range = document.createRange();
-          range.setStart(node, idx);
-          range.setEnd(node, idx + text.length);
-          applyHighlight(range, this.id);
-          if (checkHighlight(this, root)) {
-            logDebug(`4. Highlight restore succeeded.`);
-            return true; 
+      },
+      {
+        name: "4. Content search",
+        enabled: () => maxMatchLevel >= 4,
+        restoreFn: () => {
+          const text = self.text;
+          const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+          let node;
+          while ((node = walker.nextNode())) {
+            const idx = node.textContent.indexOf(text);
+            if (idx !== -1) {
+              const range = document.createRange();
+              range.setStart(node, idx);
+              range.setEnd(node, idx + text.length);
+              return range;
+            }
           }
+          return false;
+        }
+      }
+    ];
+
+    // Try each strategy in order
+    for (const { name, enabled, restoreFn } of strategies) {
+      if (enabled()) {
+        if (attemptRestore(name, restoreFn)) {
+          return true;
         }
       }
     }
-    logDebug(`1-4. Failed to restore highlight for snippet ${this.id} on ${this.url}`);
+    logDebug(`1-4. Failed to restore highlight for snippet ${self.id} on ${self.url}`);
     return false;
   }
 }
