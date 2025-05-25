@@ -72,7 +72,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 /**
  * Check if the document is ready or still loading
  */
-
 function onReady(callback) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', callback);
@@ -81,9 +80,31 @@ function onReady(callback) {
   }
 }
 
+// Debounce utility to avoid excessive calls to restoreAllSnippets during rapid DOM changes
+function debounce(fn, delay) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 onReady(() => {
   logInfo('***** Content script ready.');
   restoreAllSnippets();
+
+  // Adjust selector to the main chat/content container if needed
+  // For ChatGPT, main content area can be detected; fallback to document.body
+  let container = document.querySelector('main') || document.body;
+  const debouncedRestore = debounce(restoreAllSnippets, 200);
+
+  // Observe changes for SPA navigation or content updates
+  const observer = new MutationObserver(() => {
+    logDebug("Mutation detected, attempting to restore snippets...");
+    debouncedRestore();
+  });
+
+  observer.observe(container, { childList: true, subtree: true });
 });
 
 // Inject highlight style dynamically
