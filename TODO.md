@@ -32,7 +32,7 @@ High-level: see README.md
     - [ ] Overlapping snippets
 - Reload page (URL with snippets)
   - [x] Reproduce selection from storage (DOM path and offset)
-  - [ ] Delete snippets
+  - [ ] Delete snippets: a) when overlapping, b) via popup list
   - [ ] Change color of snippets
 - Snippet page (extension popup)
   - [x] List known snippets

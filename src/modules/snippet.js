@@ -178,4 +178,34 @@ export class Snippet {
     logDebug(`1-4. Failed to restore highlight for snippet ${self.id} on ${self.url}`);
     return false;
   }
+
+
+  /**
+   * 
+   * @returns {string} Serialized range for this snippet
+   */
+  getRange() {
+    try {
+      return rangy.deserializeRange(this.serialized, this.doc);
+    } catch (e) {
+      console.warn('Failed to deserialize range', e);
+      return null;
+    }
+  }
+
+  /**
+   * collision detection: check if two snippets overlap
+   * 
+   * @param {Snippet} a 
+   * @param {Snippet} b 
+   * @returns 
+   */
+  static overlaps(a, b) {
+    const rangeA = a.getRange();
+    const rangeB = b.getRange();
+    if (!rangeA || !rangeB) return false;
+    // Not overlapping if one is completely before or after the other
+    return !(rangeA.compareBoundaryPoints(Range.END_TO_START, rangeB) <= 0 ||
+             rangeA.compareBoundaryPoints(Range.START_TO_END, rangeB) >= 0);
+  }
 }

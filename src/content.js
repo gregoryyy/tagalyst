@@ -2,6 +2,8 @@ import { Snippet } from './modules/snippet.js';
 import { saveSnippet, loadSnippets } from './modules/storage.js';
 import { logInfo, logWarn, logError, logDebug } from './modules/logger.js';
 import { highlightClass, highlightStyle, highlightFlashClass, highlightFlashStyle } from './modules/config.js';
+import rangy from 'rangy/lib/rangy-core';
+import 'rangy/lib/rangy-serializer';
 
 let lastValidRange = null;
 
@@ -15,8 +17,16 @@ document.addEventListener('selectionchange', () => {
   }
 });
 
-// Use pointerup to trigger highlight logic
-document.addEventListener('pointerup', async () => {
+// Helper: Check if two ranges overlap
+function rangesOverlap(r1, r2) {
+  if (!r1 || !r2) return false;
+  const before = r1.compareBoundaryPoints(Range.END_TO_START, r2) <= 0;
+  const after  = r1.compareBoundaryPoints(Range.START_TO_END, r2) >= 0;
+  return !(before || after);
+}
+
+// Pointerup handler function (now with collision detection)
+async function handlePointerUp() {
   logInfo("Pointer up event detected");
   if (!lastValidRange || lastValidRange.collapsed) {
     logInfo("Pointer up: No valid range to highlight.");
@@ -24,12 +34,43 @@ document.addEventListener('pointerup', async () => {
   }
   const selection = window.getSelection();
   const snippet = Snippet.fromSelection(selection, document.body);
+
   if (snippet) {
+    // 1. Load existing snippets
+    const { snippets = [] } = await chrome.storage.local.get('snippets');
+    // 2. Detect overlaps
+    const overlapping = [];
+    const newRange = rangy.deserializeRange(snippet.serialized, document);
+    for (const other of snippets) {
+      if (other.url === snippet.url && other.id !== snippet.id) {
+        try {
+          const otherRange = rangy.deserializeRange(other.serialized, document);
+          if (rangesOverlap(newRange, otherRange)) {
+            overlapping.push(other.id);
+          }
+        } catch (e) {
+          logWarn('Error comparing ranges', e);
+        }
+      }
+    }
+    // 3. Remove overlaps from storage and DOM
+    if (overlapping.length > 0) {
+      const updatedSnippets = snippets.filter(s => !overlapping.includes(s.id));
+      await chrome.storage.local.set({ snippets: updatedSnippets });
+      overlapping.forEach(id => {
+        document.querySelectorAll(`[data-tagalyst-id='${id}']`).forEach(el => el.remove());
+      });
+      logInfo('Removed overlapping snippets:', overlapping);
+    }
+    // 4. Save the new snippet
     await saveSnippet(snippet);
     logInfo('Saved and highlighted:', snippet.text);
   }
   lastValidRange = null;
-});
+}
+
+// Use pointerup to trigger highlight logic via handler
+document.addEventListener('pointerup', handlePointerUp);
 
 async function restoreAllSnippets() {
   const snippets = await loadSnippets();
