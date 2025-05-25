@@ -27,14 +27,16 @@ export class Snippet {
    * @param {string} text - The text of the snippet
    * @param {string} annotation - Optional annotation for the snippet
    * @param {Object} anchors - Anchors for the snippet
+   * @param {number} date - Timestamp of when the snippet was created
    * @param {Object} style - Style for the snippet
    */  
-  constructor({ id, url, text, annotation = "", anchors = {}, style = "tagalyst-highlight" }) {
+  constructor({ id, url, text, annotation = "", anchors = {}, timestamp = Date.now(), style = "tagalyst-highlight" }) {
     this.id = id;
     this.url = url;
     this.text = text;
     this.annotation = annotation;
     this.anchors = anchors;
+    this.timestamp = timestamp;
     this.style = style;
   }
   
