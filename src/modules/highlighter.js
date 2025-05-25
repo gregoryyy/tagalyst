@@ -4,6 +4,7 @@ import 'rangy/lib/rangy-classapplier';
 
 import { logInfo, logWarn } from './logger.js';
 import { highlightClass, highlightStyle } from './config.js';
+
 // Initialize Rangy once
 rangy.init();
 
@@ -20,7 +21,6 @@ highlighter.addClassApplier(
     }
   })
 );
-
 
 /**
  * Apply a highlight to a given range and return the created highlight object.
@@ -78,3 +78,54 @@ export function restoreHighlight(snippet) {
   }
 }
 
+/// collision detection
+
+/**
+ * Utility: Deserialize a snippet's range (requires rangy-serializer)
+ * @param {*} snippet
+ * @param {Document} doc - optional, defaults to current document
+ * @returns {Range|null}
+ */
+export function deserializeSnippetRange(snippet, doc = document) {
+  if (!snippet.serialized && !(snippet.anchors && snippet.anchors.rangySerialized)) return null;
+  try {
+    return rangy.deserializeRange(snippet.anchors?.rangySerialized || snippet.serialized, doc);
+  } catch (e) {
+    logWarn('Failed to deserialize snippet range', e);
+    return null;
+  }
+}
+
+/**
+ * Check if two DOM Ranges overlap.
+ * @param {Range} rangeA
+ * @param {Range} rangeB
+ * @returns {boolean}
+ */
+export function rangesOverlap(rangeA, rangeB) {
+  if (!rangeA || !rangeB) return false;
+  // Not before and not after logic: if both false, they overlap
+  const before = rangeA.compareBoundaryPoints(Range.END_TO_START, rangeB) <= 0;
+  const after = rangeA.compareBoundaryPoints(Range.START_TO_END, rangeB) >= 0;
+  return !(before || after);
+}
+
+/**
+ * Find overlapping snippets for a given range and snippet list.
+ * Returns array of snippets that overlap (on the same url, excluding the new one).
+ * @param {Range} newRange
+ * @param {Array} existingSnippets
+ * @param {string} url - current page URL
+ * @returns {Array} overlappingSnippets
+ */
+export function findOverlappingSnippets(newRange, existingSnippets, url = window.location.href) {
+  const overlapping = [];
+  for (const snippet of existingSnippets) {
+    if (snippet.url !== url) continue;
+    const otherRange = deserializeSnippetRange(snippet);
+    if (rangesOverlap(newRange, otherRange)) {
+      overlapping.push(snippet);
+    }
+  }
+  return overlapping;
+}
