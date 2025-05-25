@@ -12,7 +12,7 @@ async function renderSnippets() {
 
   container.innerHTML = snippets.map(snippet => `
     <div class="snippet">
-      <div>${snippet.text}</div>
+      <div>Text: "${snippet.text}"</div>
       <small>${new Date(snippet.timestamp).toLocaleString()}</small>
       <small><a href="${snippet.url}" target="_blank">${new URL(snippet.url).hostname}</a></small>
       <button class="scroll-to-snippet" data-id="${snippet.id}" data-url="${snippet.url}">Open</button>

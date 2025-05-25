@@ -12,6 +12,9 @@
     - [x] last highlight on one page not displayed on reload
     - [ ] Lookup breaks for dynamic pages incl. unlost markit and chatGPT UI
       - [x] try robust escalating variant in snippet.js
+        - [ ] port Hypothesis logic
+        - [ ] port 
+      - [ ] text for single word selection not stored
 - Storage
   - [x] Data not saved to localstorage
   - [x] Data not retrieved
@@ -54,6 +57,29 @@ High-level: see README.md
   - [x] Create source maps
 - Chrome Webstore
   - [ ] Publish version 1.0
+
+Note:
+- On chatgpt: Uncaught (in promise) Error: Extension context invalidated.
+  - In Snippet.restore().attemptRestore() in or around checkHighlight
+- Robust annotation anchoring and management:
+  - https://github.com/hypothesis/ 
+    - ./browser-extension: extensions
+    - ./client: Used by the extension and directly embedded into pages
+      - https://github.com/hypothesis/client/blob/main/src/annotator/highlighter.ts
+      - https://github.com/hypothesis/client/tree/main/src/annotator/anchoring
+  - https://www.w3.org/TR/annotation-model/
+    - cf. #textquoteselector
+  - https://github.com/recogito/recogito-js
+     - Implements the W3C Web Annotation Data Model.
+     - Supports XPathSelector (for HTML) and position-based selectors (for PDFs).
+  - https://github.com/openannotation/annotator
+    - building annotation applications in browsers
+    - seems mostly XPath centric
+  - https://github.com/net7/pundit-client
+    - Pundit Annotator incl. Chrome extension
+    - ./pundit-anchoring: DOM anchoring strategies: Fragment (XPath), Text Position, Text Quote
+  - --> adapt
+
 
 ## History
 

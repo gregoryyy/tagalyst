@@ -61,6 +61,12 @@ export class Snippet {
       textQuote: textQuote.fromRange(root, range)
     };
 
+    logDebug(`Snippet created from selection with ID: ${snippetId}`, {
+      text: selection.toString(),
+      anchors
+    });
+    // Create and return the Snippet instance
+
     return new Snippet({
       id: snippetId,
       url: window.location.href,
