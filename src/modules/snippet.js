@@ -6,7 +6,7 @@ import "rangy/lib/rangy-serializer";
 import * as textPosition from "dom-anchor-text-position";
 import * as textQuote from "dom-anchor-text-quote";
 import { maxMatchLevel } from "./config.js";
-import { applyHighlight, restoreHighlight, highlighter } from './highlighter.js';
+import { applyHighlight, restoreHighlight, checkHighlight, highlighter } from './highlighter.js';
 import { logDebug } from "./logger.js";
 
 /**
@@ -77,12 +77,16 @@ export class Snippet {
   restoreHighlight(root = document.body) {
     // 1. Rangy Highlight (DOM structure)
     if (maxMatchLevel >= 1 && this.anchors.rangySerialized) {
+      logDebug(`1. Highlight for snippet ${this.id}: restoring from rangy serialization`);
       try {
         // If the serialization doesn't look like a highlight serialization,
         // skip to fallback (e.g. old data with range serialization)
         if (typeof this.anchors.rangySerialized === 'string' && this.anchors.rangySerialized.includes('type:textContent')) {
           restoreHighlight(this);
-          return true;
+          if (checkHighlight(this)) {
+            logDebug(`1. Highlight restore succeeded.`);
+            return true;
+          }
         }
       } catch (e) {
         logDebug('1. Failed to restore highlight from rangy serialization:', e);
@@ -90,11 +94,15 @@ export class Snippet {
     }
     // 2. TextPosition (char offsets)
     if (maxMatchLevel >= 2 && this.anchors.textPosition) {
+      logDebug(`2. Highlight for snippet ${this.id}: restoring from text position`);
       try {
         const range = textPosition.toRange(root, this.anchors.textPosition);
         if (range) {
           applyHighlight(range, this.id);
-          return true;
+          if (checkHighlight(this, root)) {
+            logDebug(`2. Highlight restore succeeded.`);
+            return true; 
+          }
         }
       } catch (e) {
         logDebug('2. Failed to restore highlight from text position:', e);
@@ -102,11 +110,15 @@ export class Snippet {
     }
     // 3. TextQuote (content + context)
     if (maxMatchLevel >= 3 && this.anchors.textQuote) {
+      logDebug(`3. Highlight for snippet ${this.id}: restoring from text quote`);
       try {
         const range = textQuote.toRange(root, this.anchors.textQuote);
         if (range) {
           applyHighlight(range, this.id);
-          return true;
+          if (checkHighlight(this, root)) {
+            logDebug(`3. Highlight restore succeeded.`);
+            return true; 
+          }
         }
       } catch (e) {
         logDebug('3. Failed to restore highlight from text content:', e);
@@ -114,6 +126,7 @@ export class Snippet {
     }
     // 4. Fallback: content search
     if (maxMatchLevel >= 4) {
+      logDebug(`4. Highlight for snippet ${this.id}: restoring from text content search`);
       const text = this.text;
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       let node;
@@ -124,11 +137,14 @@ export class Snippet {
           range.setStart(node, idx);
           range.setEnd(node, idx + text.length);
           applyHighlight(range, this.id);
-          return true;
+          if (checkHighlight(this, root)) {
+            logDebug(`4. Highlight restore succeeded.`);
+            return true; 
+          }
         }
       }
     }
-    logDebug(`4. Failed to restore highlight for snippet ${this.id} on ${this.url}`);
+    logDebug(`1-4. Failed to restore highlight for snippet ${this.id} on ${this.url}`);
     return false;
   }
 }

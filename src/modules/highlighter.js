@@ -78,3 +78,15 @@ export function restoreHighlight(snippet) {
   }
 }
 
+/**
+ * Check if highlight(s) exist in the DOM for this snippet.
+ *
+ * @param {*} snippet
+ * @param {HTMLElement} root - The root element to search within
+ * @returns {boolean}
+ */
+export function checkHighlight(snippet, root = document) {
+  // Checks for any highlightClass spans with the correct data-tagalyst-id
+  const highlights = root.querySelectorAll(`.${highlightClass}[data-tagalyst-id='${snippet.id}']`);
+  return highlights.length > 0;
+}
